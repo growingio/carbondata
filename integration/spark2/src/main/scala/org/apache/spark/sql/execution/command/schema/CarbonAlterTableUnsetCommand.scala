@@ -20,7 +20,7 @@ package org.apache.spark.sql.execution.command.schema
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.execution.command._
-import org.apache.spark.sql.hive.CarbonSessionCatalog
+import org.apache.spark.sql.hive.CarbonSessionCatalogUtil
 import org.apache.spark.util.AlterTableUtil
 
 
@@ -36,7 +36,7 @@ private[sql] case class CarbonAlterTableUnsetCommand(
       tableIdentifier.table)
     AlterTableUtil.modifyTableProperties(tableIdentifier, Map.empty[String, String],
       propKeys, false)(sparkSession,
-      sparkSession.sessionState.catalog.asInstanceOf[CarbonSessionCatalog])
+      sparkSession.sessionState.catalog)
     setAuditInfo(Map("unset" -> propKeys.mkString(", ")))
     Seq.empty
   }

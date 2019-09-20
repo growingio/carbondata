@@ -118,7 +118,7 @@ class SQLBuilder private(
                   if (aliasMap.nonEmpty && aliasMap(i).nonEmpty) {
                     AttributeReference(
                       ref.name,
-                      ref.dataType)(exprId = ref.exprId, qualifier = Option(aliasMap(i)))
+                      ref.dataType)(exprId = ref.exprId, qualifier = Seq(aliasMap(i)))
                   } else {
                     ref
                   }
@@ -180,11 +180,11 @@ class SQLBuilder private(
                   case ref: Attribute if (subqueryAttributeSet.contains(ref)) =>
                     AttributeReference(ref.name, ref.dataType)(
                       exprId = ref.exprId,
-                      qualifier = Some(subqueryName))
+                      qualifier = Seq(subqueryName))
                   case alias: Alias if (subqueryAttributeSet.contains(alias.toAttribute)) =>
                     Alias(alias.child, alias.name)(
                       exprId = alias.exprId,
-                      qualifier = Some(subqueryName))
+                      qualifier = Seq(subqueryName))
                 }
 
               case _ =>
@@ -214,11 +214,11 @@ class SQLBuilder private(
               case ref: AttributeReference if (subqueryAttributeSet.contains(ref)) =>
                 AttributeReference(ref.name, ref.dataType)(
                   exprId = ref.exprId,
-                  qualifier = Some(subqueryName))
+                  qualifier = Seq(subqueryName))
               case alias: Alias if (subqueryAttributeSet.contains(alias.toAttribute)) =>
                 Alias(alias.child, alias.name)(
                   exprId = alias.exprId,
-                  qualifier = Some(subqueryName))
+                  qualifier = Seq(subqueryName))
             }.copy(alias = Some(subqueryName))
         }
       }

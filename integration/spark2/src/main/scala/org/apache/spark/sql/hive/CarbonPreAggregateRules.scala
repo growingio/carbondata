@@ -172,6 +172,7 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
     isValidPlan
   }
   override def apply(plan: LogicalPlan): LogicalPlan = {
+    updatedExpression.clear()
     var needAnalysis = true
     plan.transformExpressions {
       // first check if any preAgg scala function is applied it is present is in plan
@@ -282,8 +283,7 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
                 childAttr.nullable,
                 childAttr.metadata,
                 childAttr.exprId,
-                attr.qualifier,
-                attr)
+                attr.qualifier)
             case None =>
               attr
           }
@@ -308,8 +308,7 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
                 childAttr.nullable,
                 childAttr.metadata,
                 childAttr.exprId,
-                attr.qualifier,
-                attr)
+                attr.qualifier)
             case None =>
               attr
           }
@@ -639,7 +638,7 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
 
     }
     if(isPlanUpdated) {
-      CarbonSession.threadSet(CarbonCommonConstants.SUPPORT_DIRECT_QUERY_ON_DATAMAP, "true")
+      CarbonUtils.threadSet(CarbonCommonConstants.SUPPORT_DIRECT_QUERY_ON_DATAMAP, "true")
     }
     updatedPlan
   }
@@ -729,13 +728,13 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
   def setSegmentsForStreaming(parentTable: CarbonTable, dataMapSchema: DataMapSchema): Unit = {
     val mainTableKey = parentTable.getDatabaseName + '.' + parentTable.getTableName
     val factManager = new SegmentStatusManager(parentTable.getAbsoluteTableIdentifier)
-    CarbonSession
+    CarbonUtils
       .threadSet(CarbonCommonConstantsInternal.QUERY_ON_PRE_AGG_STREAMING + mainTableKey, "true")
-    CarbonSession
+    CarbonUtils
       .threadSet(
         CarbonCommonConstants.CARBON_INPUT_SEGMENTS + mainTableKey,
         factManager.getValidAndInvalidSegments.getValidSegments.asScala.mkString(","))
-    CarbonSession
+    CarbonUtils
       .threadSet(CarbonCommonConstants.VALIDATE_CARBON_INPUT_SEGMENTS + mainTableKey, "true")
     // below code is for aggregate table
     val identifier = TableIdentifier(
@@ -750,11 +749,11 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
       .mkString(",")
     val childTableKey = carbonRelation.carbonTable.getDatabaseName + '.' +
                    carbonRelation.carbonTable.getTableName
-    CarbonSession
+    CarbonUtils
       .threadSet(CarbonCommonConstantsInternal.QUERY_ON_PRE_AGG_STREAMING + childTableKey, "true")
-    CarbonSession
+    CarbonUtils
       .threadSet(CarbonCommonConstants.CARBON_INPUT_SEGMENTS + childTableKey, validSegments)
-    CarbonSession
+    CarbonUtils
       .threadSet(CarbonCommonConstants.VALIDATE_CARBON_INPUT_SEGMENTS + childTableKey, "false")
   }
 
@@ -792,8 +791,7 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
             alias.nullable,
             Metadata.empty,
             factAlias.exprId,
-            alias.qualifier,
-            alias)
+            alias.qualifier)
         }
         // add aggregate function in Aggregate node added for handling streaming
         // to aggregate results from fact and aggregate table
@@ -814,8 +812,7 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
           alias.nullable,
           Metadata.empty,
           alias.exprId,
-          alias.qualifier,
-          alias)
+          alias.qualifier)
     }
     updatedExp
   }
@@ -963,8 +960,7 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
           alias.nullable,
           alias.metadata,
           alias.exprId,
-          alias.qualifier,
-          alias)
+          alias.qualifier)
         factPlanGrpExpForStreaming.put(
           AggExpToColumnMappingModel(
             removeQualifiers(PreAggregateUtil.normalizeExprId(exp, plan.allAttributes))),
@@ -1403,8 +1399,7 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
           childAttr.nullable,
           childAttr.metadata,
           newExpressionId,
-          childAttr.qualifier,
-          attr)
+          childAttr.qualifier)
         updatedExpression.put(attr, childTableAttr)
         // returning the alias to show proper column name in output
         Seq(Alias(childAttr,
@@ -1421,15 +1416,13 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
           alias.nullable,
           Metadata.empty,
           alias.exprId,
-          alias.qualifier,
-          alias)
+          alias.qualifier)
         val childTableAttr = CarbonToSparkAdapter.createAttributeReference(name,
           alias.dataType,
           alias.nullable,
           Metadata.empty,
           newExpressionId,
-          alias.qualifier,
-          alias)
+          alias.qualifier)
         updatedExpression.put(parentTableAttr, childTableAttr)
         // returning alias with child attribute reference
         Seq(Alias(childAttr,
@@ -1460,16 +1453,14 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
             alias.nullable,
             Metadata.empty,
             alias.exprId,
-            alias.qualifier,
-            alias)
+            alias.qualifier)
           // creating a child attribute reference which will be replced
           val childTableAttr = CarbonToSparkAdapter.createAttributeReference(name,
             alias.dataType,
             alias.nullable,
             Metadata.empty,
             newExpressionId,
-            alias.qualifier,
-            alias)
+            alias.qualifier)
           // adding to map, will be used during other node updation like sort, join, project
           updatedExpression.put(parentTableAttr, childTableAttr)
           // returning alias with child attribute reference
@@ -1519,15 +1510,13 @@ case class CarbonPreAggregateQueryRules(sparkSession: SparkSession) extends Rule
           alias.nullable,
           Metadata.empty,
           alias.exprId,
-          alias.qualifier,
-          alias)
+          alias.qualifier)
         val childTableAttr = CarbonToSparkAdapter.createAttributeReference(name,
           alias.dataType,
           alias.nullable,
           Metadata.empty,
           newExpressionId,
-          alias.qualifier,
-          alias)
+          alias.qualifier)
         updatedExpression.put(parentTableAttr, childTableAttr)
         Seq(Alias(updatedExp, name)(newExpressionId,
           alias.qualifier).asInstanceOf[NamedExpression])

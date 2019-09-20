@@ -200,7 +200,7 @@ object HarmonizeFactTable extends Rule[ModularPlan] with PredicateHelper with Ag
             .map { ref =>
               AttributeReference(ref.name, ref.dataType)(
                 exprId = ref.exprId,
-                qualifier = Some(hFactName))
+                qualifier = Seq(hFactName))
             }
           val hFactOutputSet = hFact.outputSet
           // Update the outputlist qualifier
@@ -209,7 +209,7 @@ object HarmonizeFactTable extends Rule[ModularPlan] with PredicateHelper with Ag
               case ref: Attribute if hFactOutputSet.contains(ref) =>
                 AttributeReference(ref.name, ref.dataType)(
                   exprId = ref.exprId,
-                  qualifier = Some(hFactName))
+                  qualifier = Seq(hFactName))
             }
           }.asInstanceOf[Seq[NamedExpression]]
 
@@ -219,7 +219,7 @@ object HarmonizeFactTable extends Rule[ModularPlan] with PredicateHelper with Ag
               case ref: Attribute if hFactOutputSet.contains(ref) =>
                 AttributeReference(ref.name, ref.dataType)(
                   exprId = ref.exprId,
-                  qualifier = Some(hFactName))
+                  qualifier = Seq(hFactName))
             }
           }
           val hSel = s.copy(
@@ -243,7 +243,7 @@ object HarmonizeFactTable extends Rule[ModularPlan] with PredicateHelper with Ag
             case ref: Attribute if hFactOutputSet.contains(ref) =>
               AttributeReference(ref.name, ref.dataType)(
                 exprId = ref.exprId,
-                qualifier = Some(hFactName))
+                qualifier = Seq(hFactName))
           }
         }
       }

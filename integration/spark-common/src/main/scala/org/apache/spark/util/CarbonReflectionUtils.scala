@@ -148,7 +148,7 @@ object CarbonReflectionUtils {
         relation,
         expectedOutputAttributes,
         catalogTable)._1.asInstanceOf[LogicalRelation]
-    } else if (SparkUtil.isSparkVersionEqualTo("2.3")) {
+    } else if (SparkUtil.isSparkVersionXandAbove("2.3")) {
       createObject(
         className,
         relation,
@@ -379,6 +379,15 @@ object CarbonReflectionUtils {
    */
   def setFieldToCaseClass(caseObj: Object, fieldName: String, objToSet: Object): Unit = {
     val nameField = caseObj.getClass.getDeclaredField(fieldName)
+    nameField.setAccessible(true)
+    nameField.set(caseObj, objToSet)
+  }
+
+  /**
+   * This method updates the field of case class through reflection.
+   */
+  def setSuperFieldToClass(caseObj: Object, fieldName: String, objToSet: Object): Unit = {
+    val nameField = caseObj.getClass.getSuperclass.getDeclaredField(fieldName)
     nameField.setAccessible(true)
     nameField.set(caseObj, objToSet)
   }

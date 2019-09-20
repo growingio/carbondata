@@ -23,8 +23,7 @@ import scala.collection.mutable.ArrayBuffer
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
-import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.expressions
+import org.apache.spark.sql.catalyst.{expressions, InternalRow}
 import org.apache.spark.sql.catalyst.expressions.{Attribute, _}
 import org.apache.spark.sql.catalyst.planning.PhysicalOperation
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
@@ -135,10 +134,13 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
     val relation = CarbonDecoderRelation(logicalRelation.attributeMap,
       logicalRelation.relation.asInstanceOf[CarbonDatasourceHadoopRelation])
     val attrs = projectExprsNeedToDecode.map { attr =>
-      val newAttr = AttributeReference(attr.name,
+      val newAttr = CarbonToSparkAdapter.createAttributeReference(
+        attr.name,
         attr.dataType,
         attr.nullable,
-        attr.metadata)(attr.exprId, Option(table.carbonRelation.tableName))
+        attr.metadata,
+        attr.exprId,
+        Option(table.carbonRelation.tableName))
       relation.addAttribute(newAttr)
       newAttr
     }
@@ -187,8 +189,7 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
               attr.nullable,
               attr.metadata,
               attr.exprId,
-              attr.qualifier,
-              attr)
+              attr.qualifier)
         }
       }
       partitions =
@@ -386,7 +387,7 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
             newProjectList :+= reference
             a.transform {
               case s: ScalaUDF =>
-                ScalaUDF(s.function, s.dataType, Seq(reference), s.inputTypes)
+                CarbonToSparkAdapter.createScalaUDF(s, reference)
             }
           case other => other
       }

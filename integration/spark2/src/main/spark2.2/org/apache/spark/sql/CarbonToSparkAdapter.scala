@@ -44,12 +44,23 @@ object CarbonToSparkAdapter {
 
   def createAttributeReference(name: String, dataType: DataType, nullable: Boolean,
                                metadata: Metadata,exprId: ExprId, qualifier: Option[String],
-                               attrRef : NamedExpression): AttributeReference = {
+                               attrRef : NamedExpression = null): AttributeReference = {
     AttributeReference(
       name,
       dataType,
       nullable,
       metadata)(exprId, qualifier,attrRef.isGenerated)
+  }
+
+  def createScalaUDF(
+      function: AnyRef,
+      dataType: DataType,
+      children: Seq[Expression],
+      inputTypes: Seq[DataType] = Nil,
+      udfName: Option[String] = None,
+      nullable: Boolean = true,
+      udfDeterministic: Boolean = true) = {
+    ScalaUDF(s.function, s.dataType, Seq(reference), s.inputTypes)
   }
 
   def createAliasRef(child: Expression,

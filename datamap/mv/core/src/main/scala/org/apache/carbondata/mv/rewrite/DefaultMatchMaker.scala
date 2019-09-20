@@ -92,12 +92,13 @@ abstract class DefaultMatchPattern extends MatchPattern[ModularPlan] {
     }
     if (aliasMapMain.size == 1) {
       val subsumerName: Option[String] = aliasMapMain.get(0)
+      val qualifier = if (subsumerName.isDefined) Seq(subsumerName.get) else Seq.empty
       // Replace all compensation1 attributes with refrences of subsumer attributeset
       val compensationFinal = compensation1.transformExpressions {
         case ref: Attribute if subqueryAttributeSet.contains(ref) =>
-          AttributeReference(ref.name, ref.dataType)(exprId = ref.exprId, qualifier = subsumerName)
+          AttributeReference(ref.name, ref.dataType)(exprId = ref.exprId, qualifier = qualifier)
         case alias: Alias if subqueryAttributeSet.contains(alias.toAttribute) =>
-          Alias(alias.child, alias.name)(exprId = alias.exprId, qualifier = subsumerName)
+          Alias(alias.child, alias.name)(exprId = alias.exprId, qualifier = qualifier)
       }
       compensationFinal
     } else {

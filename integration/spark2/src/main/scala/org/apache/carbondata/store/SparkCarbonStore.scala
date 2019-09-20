@@ -52,7 +52,9 @@ class SparkCarbonStore extends MetaCachedCarbonStore {
       .config(sparkConf)
       .appName("SparkCarbonStore-" + storeName)
       .config("spark.sql.warehouse.dir", storeLocation)
-      .getOrCreateCarbonSession()
+      .config("spark.sql.extensions", "org.apache.spark.sql.CarbonExtensions")
+      .getOrCreate()
+    CarbonEnv.getInstance(session)
   }
 
   def this(sparkSession: SparkSession) = {

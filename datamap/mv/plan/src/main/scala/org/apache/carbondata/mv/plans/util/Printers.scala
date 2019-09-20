@@ -203,7 +203,8 @@ trait Printers {
                   s => {
                          s.child match {
                            case a: Alias =>
-                             val qualifierPrefix = a.qualifier
+                             val qualifierPrefix = Option(a.qualifier)
+                               .map(_.mkString("."))
                                .map(_ + ".").getOrElse("")
                              s"$qualifierPrefix${
                                quoteIdentifier(a
@@ -220,8 +221,9 @@ trait Printers {
                 s => {
                        s.child match {
                          case a: Alias =>
-                           val qualifierPrefix = a.qualifier.map(_ + ".")
-                             .getOrElse("")
+                           val qualifierPrefix = Option(a.qualifier)
+                             .map(_.mkString("."))
+                             .map(_ + ".").getOrElse("")
                            s"$qualifierPrefix${ quoteIdentifier(a.name) }"
 
                          case other => other.sql

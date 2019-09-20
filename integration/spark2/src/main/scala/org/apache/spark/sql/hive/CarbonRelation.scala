@@ -21,8 +21,9 @@ import java.util.LinkedHashSet
 import scala.Array.canBuildFrom
 import scala.collection.JavaConverters._
 
+import org.apache.spark.sql.CarbonToSparkAdapter
 import org.apache.spark.sql.catalyst.analysis.MultiInstanceRelation
-import org.apache.spark.sql.catalyst.expressions.AttributeReference
+import org.apache.spark.sql.catalyst.expressions.{AttributeReference, NamedExpression}
 import org.apache.spark.sql.catalyst.plans.logical.{LeafNode, LogicalPlan}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.util.{CarbonMetastoreTypes, SparkTypeConverter}
@@ -122,8 +123,9 @@ case class CarbonRelation(
             val dataType = SparkTypeConverter.addDecimalScaleAndPrecision(column, dType)
             CarbonMetastoreTypes.toDataType(dataType)
         }
-        AttributeReference(column.getColName, output, nullable = true )(
-          qualifier = Option(tableName + "." + column.getColName))
+        CarbonToSparkAdapter.createAttributeReference(
+          column.getColName, output, nullable = true, Metadata.empty, NamedExpression.newExprId,
+          qualifier = Seq(tableName + "." + column.getColName))
       } else {
         val output = CarbonMetastoreTypes.toDataType {
           column.getDataType.getName.toLowerCase match {
@@ -132,8 +134,9 @@ case class CarbonRelation(
             case others => others
           }
         }
-        AttributeReference(column.getColName, output, nullable = true)(
-          qualifier = Option(tableName + "." + column.getColName))
+        CarbonToSparkAdapter.createAttributeReference(
+          column.getColName, output, nullable = true, Metadata.empty, NamedExpression.newExprId,
+          qualifier = Seq(tableName + "." + column.getColName))
       }
     }
   }

@@ -20,7 +20,7 @@ package org.apache.carbondata.mv.rewrite
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.datasources.LogicalRelation
-import org.apache.spark.sql.test.util.QueryTest
+import org.apache.spark.sql.test.util.CarbonQueryTest
 import org.scalatest.BeforeAndAfterAll
 
 import org.apache.carbondata.core.constants.CarbonCommonConstants
@@ -33,7 +33,7 @@ import org.apache.carbondata.core.statusmanager.{SegmentStatus, SegmentStatusMan
  * Test Class to verify Incremental Load on  MV Datamap
  */
 
-class MVIncrementalLoadingTestcase extends QueryTest with BeforeAndAfterAll {
+class MVIncrementalLoadingTestcase extends CarbonQueryTest with BeforeAndAfterAll {
 
   override def beforeAll(): Unit = {
     sql("drop table IF EXISTS test_table")

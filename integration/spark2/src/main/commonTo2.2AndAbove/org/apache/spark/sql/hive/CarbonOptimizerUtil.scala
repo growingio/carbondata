@@ -5,6 +5,13 @@ import org.apache.spark.sql.catalyst.expressions.{Exists, In, ListQuery, ScalarS
 import org.apache.spark.sql.catalyst.plans.logical.{Filter, LogicalPlan}
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 
+/**
+  * Desc: 
+  *
+  * Mail: chk19940609@gmail.com
+  * Created by IceMimosa
+  * Date: 2019-09-19
+  */
 object CarbonOptimizerUtil {
   def transformForScalarSubQuery(plan: LogicalPlan): LogicalPlan = {
     // In case scalar subquery add flag in relation to skip the decoder plan in optimizer rule, And

@@ -358,7 +358,9 @@ object MVHelper {
 
   def updateColumnName(attr: Attribute, counter: Int): String = {
     val name = getUpdatedName(attr.name, counter)
-    attr.qualifier.map(qualifier => qualifier + "_" + name).getOrElse(name)
+    Option(attr.qualifier)
+      .map(_.mkString("_"))
+      .map(qualifier => qualifier + "_" + name).getOrElse(name)
   }
 
   def getTables(logicalPlan: LogicalPlan): Seq[CatalogTable] = {
@@ -450,7 +452,7 @@ object MVHelper {
   }
 
   def createAttrReference(ref: NamedExpression, name: String): Alias = {
-    Alias(ref, name)(exprId = ref.exprId, qualifier = None)
+    Alias(ref, name)(exprId = ref.exprId, qualifier = Seq.empty)
   }
 
   case class AttributeKey(exp: Expression) {
@@ -519,8 +521,7 @@ object MVHelper {
                 a.nullable,
                 a.metadata,
                 a.exprId,
-                attr.qualifier,
-                a)
+                attr.qualifier)
             } else {
               a
             }
@@ -552,9 +553,9 @@ object MVHelper {
     outputSel.zip(subsumerOutputList).map{ case (l, r) =>
       l match {
         case attr: AttributeReference =>
-          Alias(attr, r.name)(r.exprId, None)
+          Alias(attr, r.name)(r.exprId, Seq.empty)
         case a@Alias(attr: AttributeReference, name) =>
-          Alias(attr, r.name)(r.exprId, None)
+          Alias(attr, r.name)(r.exprId, Seq.empty)
         case other => other
       }
     }
@@ -576,8 +577,7 @@ object MVHelper {
                   a.nullable,
                   a.metadata,
                   a.exprId,
-                  attr.qualifier,
-                  a)
+                  attr.qualifier)
             } else {
               a
             }

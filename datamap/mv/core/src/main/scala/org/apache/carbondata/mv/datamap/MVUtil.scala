@@ -109,7 +109,7 @@ class MVUtil {
             arrayBuffer += relation
           }
           fieldToDataMapFieldMap +=
-          getFieldToDataMapFields(name, attr.dataType, None, "", arrayBuffer, "")
+          getFieldToDataMapFields(name, attr.dataType, Seq.empty, "", arrayBuffer, "")
         }
       case a@Alias(_, name) =>
         checkIfComplexDataTypeExists(a)
@@ -129,7 +129,7 @@ class MVUtil {
             }
         }
         fieldToDataMapFieldMap +=
-        getFieldToDataMapFields(a.name, a.dataType, None, "arithmetic", arrayBuffer, "")
+        getFieldToDataMapFields(a.name, a.dataType, Seq.empty, "arithmetic", arrayBuffer, "")
     }
     fieldToDataMapFieldMap
   }
@@ -157,7 +157,7 @@ class MVUtil {
             fieldToDataMapFieldMap +=
             getFieldToDataMapFields(name,
               attr.aggregateFunction.dataType,
-              None,
+              Seq.empty,
               attr.aggregateFunction.nodeName,
               arrayBuffer,
               "")
@@ -275,17 +275,19 @@ class MVUtil {
    */
   private def getFieldToDataMapFields(name: String,
       dataType: DataType,
-      qualifier: Option[String],
+      qualifier: Seq[String],
       aggregateType: String,
       columnTableRelationList: ArrayBuffer[ColumnTableRelation],
       parenTableName: String) = {
     var actualColumnName = MVHelper.getUpdatedName(name, counter)
     counter += 1
-    if (qualifier.isDefined) {
-      actualColumnName = qualifier.map(qualifier => qualifier + "_" + name)
+    if (qualifier != null && qualifier.nonEmpty) {
+      actualColumnName = Option(qualifier)
+        .map(_.mkString("_"))
+        .map(qualifier => qualifier + "_" + name)
         .getOrElse(actualColumnName)
     }
-    if (qualifier.isEmpty) {
+    if (qualifier == null || qualifier.isEmpty) {
       if (aggregateType.isEmpty && !parenTableName.isEmpty) {
         actualColumnName = parenTableName + "_" + actualColumnName
       }
@@ -338,7 +340,9 @@ class MVUtil {
     val updatedOutList = outputList.map { col =>
       val duplicateColumn = duplicateNameCols
         .find(a => a.semanticEquals(col))
-      val qualifiedName = col.qualifier.getOrElse(s"${ col.exprId.id }") + "_" + col.name
+      val qualifiedName = Option(col.qualifier)
+        .map(_.mkString("_"))
+        .getOrElse(s"${ col.exprId.id }") + "_" + col.name
       if (duplicateColumn.isDefined) {
         val attributesOfDuplicateCol = duplicateColumn.get.collect {
           case a: AttributeReference => a
@@ -354,7 +358,7 @@ class MVUtil {
           attributeOfCol.exists(a => a.semanticEquals(expr)))
         if (!isStrictDuplicate) {
           Alias(col, qualifiedName)(exprId = col.exprId)
-        } else if (col.qualifier.isDefined) {
+        } else if (col.qualifier.nonEmpty) {
           Alias(col, qualifiedName)(exprId = col.exprId)
           // this check is added in scenario where the column is direct Attribute reference and
           // since duplicate columns select is allowed, we should just put alias for those columns

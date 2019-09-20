@@ -16,11 +16,10 @@
  */
 package org.apache.spark.sql.hive
 
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.internal.SQLConf.buildConf
-
 import org.apache.carbondata.core.constants.{CarbonCommonConstants, CarbonLoadOptionConstants}
 import org.apache.carbondata.core.util.CarbonProperties
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.internal.SQLConf.buildConf
 
 /**
  * To initialize dynamic values default param
