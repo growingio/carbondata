@@ -358,7 +358,8 @@ object MVHelper {
 
   def updateColumnName(attr: Attribute, counter: Int): String = {
     val name = getUpdatedName(attr.name, counter)
-    attr.qualifier.map(qualifier => qualifier + "_" + name).getOrElse(name)
+    CarbonToSparkAdapter.wrapQualifier(attr.qualifier, "_")
+      .map(qualifier => qualifier + "_" + name).getOrElse(name)
   }
 
   def getTables(logicalPlan: LogicalPlan): Seq[CatalogTable] = {
@@ -450,7 +451,8 @@ object MVHelper {
   }
 
   def createAttrReference(ref: NamedExpression, name: String): Alias = {
-    Alias(ref, name)(exprId = ref.exprId, qualifier = None)
+    CarbonToSparkAdapter.createAliasRef(ref, name,
+      exprId = ref.exprId, qualifier = None, explicitMetadata = None, namedExpr = None)
   }
 
   case class AttributeKey(exp: Expression) {
@@ -505,10 +507,10 @@ object MVHelper {
             CarbonToSparkAdapter.createAliasRef(
               getAttribute(exp),
               name,
-              alias.exprId,
-              alias.qualifier,
-              alias.explicitMetadata,
-              Some(alias))
+              exprId = alias.exprId,
+              qualifier = alias.qualifier,
+              explicitMetadata = alias.explicitMetadata,
+              namedExpr = Some(alias))
           }.getOrElse(alias)
 
         case attr: AttributeReference =>
@@ -517,10 +519,10 @@ object MVHelper {
               CarbonToSparkAdapter.createAttributeReference(a.name,
                 a.dataType,
                 a.nullable,
-                a.metadata,
-                a.exprId,
-                attr.qualifier,
-                a)
+                metadata = a.metadata,
+                exprId = a.exprId,
+                qualifier = attr.qualifier,
+                attrRef = a)
             } else {
               a
             }
@@ -529,8 +531,10 @@ object MVHelper {
         case alias@Alias(expression: Expression, name) =>
           attrMap.get(AttributeKey(expression)).map { exp =>
             CarbonToSparkAdapter
-              .createAliasRef(getAttribute(exp), name, alias.exprId, alias.qualifier,
-                alias.explicitMetadata, Some(alias))
+              .createAliasRef(getAttribute(exp), name,
+                exprId = alias.exprId,
+                qualifier = alias.qualifier,
+                explicitMetadata = alias.explicitMetadata, namedExpr = Some(alias))
           }.getOrElse(alias)
         case expression: Expression =>
           val uattr = attrMap.get(AttributeKey(expression))
@@ -552,9 +556,11 @@ object MVHelper {
     outputSel.zip(subsumerOutputList).map{ case (l, r) =>
       l match {
         case attr: AttributeReference =>
-          Alias(attr, r.name)(r.exprId, None)
+          CarbonToSparkAdapter.createAliasRef(attr, r.name,
+            exprId = r.exprId, qualifier = None, explicitMetadata = None, namedExpr = None)
         case a@Alias(attr: AttributeReference, name) =>
-          Alias(attr, r.name)(r.exprId, None)
+          CarbonToSparkAdapter.createAliasRef(attr, r.name,
+            exprId = r.exprId, qualifier = None, explicitMetadata = None, namedExpr = None)
         case other => other
       }
     }
@@ -574,10 +580,10 @@ object MVHelper {
                 .createAttributeReference(a.name,
                   a.dataType,
                   a.nullable,
-                  a.metadata,
-                  a.exprId,
-                  attr.qualifier,
-                  a)
+                  metadata = a.metadata,
+                  exprId = a.exprId,
+                  qualifier = attr.qualifier,
+                  attrRef = a)
             } else {
               a
             }

@@ -17,6 +17,7 @@
 
 package org.apache.carbondata.mv.plans.modular
 
+import org.apache.spark.sql.CarbonToSparkAdapter
 import org.apache.spark.sql.catalyst.expressions.{Expression, NamedExpression, PredicateHelper, _}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.LogicalRelation
@@ -54,7 +55,8 @@ object SimpleModularizer extends ModularPatterns {
           val aq = AttributeSet(g.outputList).filter(_.qualifier.nonEmpty)
           val makeupmap = children.zipWithIndex.flatMap {
             case (child, i) =>
-              aq.find(child.outputSet.contains(_)).map(_.qualifier).flatten.map((i, _))
+              aq.find(child.outputSet.contains(_))
+                .map(a => CarbonToSparkAdapter.wrapQualifier(a.qualifier, ".")).flatten.map((i, _))
           }.toMap
           g.copy(child = s.copy(aliasMap = makeupmap ++ aliasmap))
       }

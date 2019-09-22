@@ -23,12 +23,12 @@ import java.net.URI
 import org.apache.spark.SparkContext
 import org.apache.spark.scheduler.{SparkListener, SparkListenerApplicationEnd}
 import org.apache.spark.sql.catalyst.catalog.CatalogStorageFormat
-import org.apache.spark.sql.catalyst.expressions.{Alias, AttributeReference, AttributeSet, ExprId, Expression, ExpressionSet, NamedExpression}
-import org.apache.spark.sql.catalyst.optimizer.OptimizeCodegen
+import org.apache.spark.sql.catalyst.expressions.codegen.Block._
+import org.apache.spark.sql.catalyst.expressions.codegen.{ExprCode, JavaCode}
+import org.apache.spark.sql.catalyst.expressions.{Alias, AttributeReference, AttributeSet, ExprId, Expression, ExpressionSet, NamedExpression, ScalaUDF, SubqueryExpression}
 import org.apache.spark.sql.catalyst.plans.logical.{LogicalPlan, OneRowRelation}
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.command.ExplainCommand
-import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.types.{DataType, Metadata}
 
 object CarbonToSparkAdapter {
@@ -37,53 +37,97 @@ object CarbonToSparkAdapter {
     sparkContext.addSparkListener(new SparkListener {
       override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
         SparkSession.setDefaultSession(null)
-        SparkSession.sqlListener.set(null)
       }
     })
   }
 
   def createAttributeReference(name: String, dataType: DataType, nullable: Boolean,
-                               metadata: Metadata,exprId: ExprId, qualifier: Option[String],
+                               metadata: Metadata,
+                               exprId: ExprId,
+                               qualifier: Option[String],
+                               attrRef : NamedExpression = null): AttributeReference = {
+    val _qualifier = qualifier.map(Seq(_)).getOrElse(Seq.empty)
+    AttributeReference(
+      name,
+      dataType,
+      nullable,
+      metadata)(exprId, _qualifier)
+  }
+
+  def createAttributeReference(name: String, dataType: DataType, nullable: Boolean,
+                               qualifier: Seq[String],
+                               metadata: Metadata,
+                               exprId: ExprId,
                                attrRef : NamedExpression): AttributeReference = {
     AttributeReference(
       name,
       dataType,
       nullable,
-      metadata)(exprId, qualifier,attrRef.isGenerated)
+      metadata)(exprId, qualifier)
+  }
+
+  def createScalaUDF(s: ScalaUDF, reference: AttributeReference) = {
+    ScalaUDF(s.function, s.dataType, Seq(reference), s.inputsNullSafe, s.inputTypes)
+  }
+
+  def createExprCode(code: String, isNull: String, value: String, dataType: DataType) = {
+    ExprCode(
+      code"$code",
+      JavaCode.isNullVariable(isNull),
+      JavaCode.variable(value, dataType))
   }
 
   def createAliasRef(child: Expression,
                      name: String,
-                     exprId: ExprId = NamedExpression.newExprId,
-                     qualifier: Option[String] = None,
-                     explicitMetadata: Option[Metadata] = None,
-                     namedExpr: Option[NamedExpression] = None): Alias = {
-    val isGenerated:Boolean = if (namedExpr.isDefined) {
-      namedExpr.get.isGenerated
-    } else {
-      false
-    }
-    Alias(child, name)(exprId, qualifier, explicitMetadata,isGenerated)
+                     qualifier: Option[String],
+                     exprId: ExprId,
+                     explicitMetadata: Option[Metadata],
+                     namedExpr : Option[NamedExpression]) : Alias = {
+    val _qualifier = qualifier.map(Seq(_)).getOrElse(Seq.empty)
+    Alias(child, name)(exprId, _qualifier, explicitMetadata)
+  }
+
+  def createAliasRef(child: Expression,
+                     name: String,
+                     qualifier: Seq[String],
+                     exprId: ExprId,
+                     explicitMetadata: Option[Metadata],
+                     namedExpr : Option[NamedExpression]) : Alias = {
+    Alias(child, name)(exprId, qualifier, explicitMetadata)
   }
 
   def getExplainCommandObj() : ExplainCommand = {
-    ExplainCommand(OneRowRelation)
+    ExplainCommand(OneRowRelation())
   }
 
   def wrapQualifier(qualifier: Option[String], seq: String): Option[String] = {
     qualifier
   }
 
+  def wrapQualifier(qualifier: Seq[String], seq: String): Option[String] = {
+    Option(qualifier)
+      .filter(_.nonEmpty).map(_.mkString(seq))
+  }
+
+  /**
+   * As a part of SPARK-24085 Hive tables supports scala subquery for
+   * parition tables,so Carbon also needs to supports
+   * @param partitionSet
+   * @param filterPredicates
+   * @return
+   */
   def getPartitionKeyFilter(
       partitionSet: AttributeSet,
       filterPredicates: Seq[Expression]): ExpressionSet = {
     ExpressionSet(
       ExpressionSet(filterPredicates)
+        .filterNot(SubqueryExpression.hasSubquery)
         .filter(_.references.subsetOf(partitionSet)))
   }
 
+  // As per SPARK-22520 OptimizeCodegen is removed in 2.3.1
   def getOptimizeCodegenRule(conf :SQLConf): Seq[Rule[LogicalPlan]] = {
-    Seq(OptimizeCodegen(conf))
+    Seq.empty
   }
 
   def getUpdatedStorageFormat(storageFormat: CatalogStorageFormat,

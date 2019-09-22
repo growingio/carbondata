@@ -25,11 +25,20 @@
 * [Apache Thrift 0.9.3](http://archive.apache.org/dist/thrift/0.9.3/)
 
 ## Build command
+
+修改thrift命令路径: 修改`format`模块pom.xml中的thrift命令, 由于我使用的是Mac系统, 命令指向了 `/usr/local/Cellar/thrift/0.9.3/bin/thrift` (必须是0.9.3版本)
+
 Build with different supported versions of Spark, by default using Spark 2.2.1 to build
 ```
 mvn -DskipTests -Pspark-2.1 -Dspark.version=2.1.0 clean package
 mvn -DskipTests -Pspark-2.2 -Dspark.version=2.2.1 clean package
 mvn -DskipTests -Pspark-2.3 -Dspark.version=2.3.2 clean package
+```
+
+使用 hadoop 2.7.7
+
+```
+mvn -DskipTests -Pspark-2.4 -Dspark.version=2.4.3-GIO1.0.0 -Dhadoop.version=2.7.7 clean package
 ```
 
 Note:
@@ -40,4 +49,5 @@ Note:
 Note:Need install Apache Thrift 0.9.3
 ```
 mvn clean -DskipTests -Pbuild-with-format -Pspark-2.2 package
+mvn clean -DskipTests -Pbuild-with-format -Pspark-2.4 -Dhadoop.version=2.7.7 package
 ```

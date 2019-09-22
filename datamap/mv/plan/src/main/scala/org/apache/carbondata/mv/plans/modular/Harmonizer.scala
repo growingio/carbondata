@@ -17,10 +17,10 @@
 
 package org.apache.carbondata.mv.plans.modular
 
+import org.apache.spark.sql.{CarbonToSparkAdapter, SQLConf}
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.plans._
 import org.apache.spark.sql.catalyst.rules._
-import org.apache.spark.sql.SQLConf
 
 import org.apache.carbondata.mv.plans
 import org.apache.carbondata.mv.plans._
@@ -198,18 +198,22 @@ object HarmonizeFactTable extends Rule[ModularPlan] with PredicateHelper with Ag
                                                               .isInstanceOf[Attribute]))
           val aggOutputList = aggTransMap.values.flatMap(t => t._2)
             .map { ref =>
-              AttributeReference(ref.name, ref.dataType)(
+              CarbonToSparkAdapter.createAttributeReference(ref.name, ref.dataType,
+                ref.nullable, ref.metadata,
                 exprId = ref.exprId,
-                qualifier = Some(hFactName))
+                qualifier = Some(hFactName),
+                ref)
             }
           val hFactOutputSet = hFact.outputSet
           // Update the outputlist qualifier
           val hOutputList = (attrOutputList ++ aggOutputList).map {attr =>
             attr.transform {
               case ref: Attribute if hFactOutputSet.contains(ref) =>
-                AttributeReference(ref.name, ref.dataType)(
+                CarbonToSparkAdapter.createAttributeReference(ref.name, ref.dataType,
+                  ref.nullable, ref.metadata,
                   exprId = ref.exprId,
-                  qualifier = Some(hFactName))
+                  qualifier = Some(hFactName),
+                  ref)
             }
           }.asInstanceOf[Seq[NamedExpression]]
 
@@ -217,9 +221,14 @@ object HarmonizeFactTable extends Rule[ModularPlan] with PredicateHelper with Ag
           val hPredList = s.predicateList.map{ pred =>
             pred.transform {
               case ref: Attribute if hFactOutputSet.contains(ref) =>
-                AttributeReference(ref.name, ref.dataType)(
+                CarbonToSparkAdapter.createAttributeReference(
+                  ref.name, ref.dataType,
+                  ref.nullable,
+                  ref.metadata,
                   exprId = ref.exprId,
-                  qualifier = Some(hFactName))
+                  qualifier = Some(hFactName),
+                  ref
+                )
             }
           }
           val hSel = s.copy(
@@ -241,9 +250,11 @@ object HarmonizeFactTable extends Rule[ModularPlan] with PredicateHelper with Ag
           val wip = g.copy(outputList = gOutputList, inputList = hInputList, child = hSel)
           wip.transformExpressions {
             case ref: Attribute if hFactOutputSet.contains(ref) =>
-              AttributeReference(ref.name, ref.dataType)(
+              CarbonToSparkAdapter.createAttributeReference(ref.name, ref.dataType,
+                ref.nullable, ref.metadata,
                 exprId = ref.exprId,
-                qualifier = Some(hFactName))
+                qualifier = Some(hFactName),
+                ref)
           }
         }
       }

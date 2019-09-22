@@ -939,18 +939,18 @@ case class CarbonLoadDataCommand(
         CarbonToSparkAdapter.createAttributeReference(attr.name,
           IntegerType,
           attr.nullable,
-          attr.metadata,
-          attr.exprId,
-          attr.qualifier,
-          attr)
+          metadata = attr.metadata,
+          exprId = attr.exprId,
+          qualifier = attr.qualifier,
+          attrRef = attr)
       } else if (attr.dataType == TimestampType || attr.dataType == DateType) {
         CarbonToSparkAdapter.createAttributeReference(attr.name,
           LongType,
           attr.nullable,
-          attr.metadata,
-          attr.exprId,
-          attr.qualifier,
-          attr)
+          metadata = attr.metadata,
+          exprId = attr.exprId,
+          qualifier = attr.qualifier,
+          attrRef = attr)
       } else {
         attr
       }

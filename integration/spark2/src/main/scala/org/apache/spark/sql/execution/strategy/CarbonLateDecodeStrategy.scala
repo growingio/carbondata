@@ -140,10 +140,13 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
     val relation = CarbonDecoderRelation(logicalRelation.attributeMap,
       logicalRelation.relation.asInstanceOf[CarbonDatasourceHadoopRelation])
     val attrs = projectExprsNeedToDecode.map { attr =>
-      val newAttr = AttributeReference(attr.name,
+      val newAttr = CarbonToSparkAdapter.createAttributeReference(
+        attr.name,
         attr.dataType,
         attr.nullable,
-        attr.metadata)(attr.exprId, Option(table.carbonRelation.tableName))
+        attr.metadata,
+        attr.exprId,
+        Option(table.carbonRelation.tableName))
       relation.addAttribute(newAttr)
       newAttr
     }
@@ -190,10 +193,10 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
               attr.name.toLowerCase,
               attr.dataType,
               attr.nullable,
-              attr.metadata,
-              attr.exprId,
-              attr.qualifier,
-              attr)
+              metadata = attr.metadata,
+              exprId = attr.exprId,
+              qualifier = attr.qualifier,
+              attrRef = attr)
         }
       }
       partitions =
@@ -401,7 +404,8 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
             newProjectList :+= reference
             a.transform {
               case s: ScalaUDF =>
-                ScalaUDF(s.function, s.dataType, Seq(reference), s.inputTypes)
+                // ScalaUDF(s.function, s.dataType, Seq(reference), s.inputTypes)
+                CarbonToSparkAdapter.createScalaUDF(s, reference)
             }
           case other => other
       }

@@ -19,6 +19,7 @@ package org.apache.carbondata.mv.plans.util
 
 import java.io.{OutputStream, PrintWriter, StringWriter}
 
+import org.apache.spark.sql.CarbonToSparkAdapter
 import org.apache.spark.sql.catalyst.expressions.{Expression, NamedExpression, _}
 import org.apache.spark.sql.catalyst.plans.JoinType
 import org.apache.spark.sql.catalyst.util.quoteIdentifier
@@ -203,7 +204,8 @@ trait Printers {
                   s => {
                          s.child match {
                            case a: Alias =>
-                             val qualifierPrefix = a.qualifier
+                             val qualifierPrefix = CarbonToSparkAdapter
+                               .wrapQualifier(a.qualifier, ".")
                                .map(_ + ".").getOrElse("")
                              s"$qualifierPrefix${
                                quoteIdentifier(a
@@ -220,8 +222,9 @@ trait Printers {
                 s => {
                        s.child match {
                          case a: Alias =>
-                           val qualifierPrefix = a.qualifier.map(_ + ".")
-                             .getOrElse("")
+                           val qualifierPrefix = CarbonToSparkAdapter
+                             .wrapQualifier(a.qualifier, ".")
+                             .map(_ + ".").getOrElse("")
                            s"$qualifierPrefix${ quoteIdentifier(a.name) }"
 
                          case other => other.sql

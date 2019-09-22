@@ -30,33 +30,33 @@ object FlinkExample {
 
   def main(args: Array[String]): Unit = {
     // write carbondata file by spark
-    val cc = ExampleUtils.createCarbonSession("FlinkExample")
-    val path = ExampleUtils.writeSampleCarbonFile(cc, "carbon1")
-
-    // read two columns by flink
-    val projection = new CarbonProjection
-    projection.addColumn("c1")  // column c1
-    projection.addColumn("c3")  // column c3
-    val conf = new Configuration()
-    CarbonTableInputFormat.setColumnProjection(conf, projection)
-
-    val env = ExecutionEnvironment.getExecutionEnvironment
-    val ds = env.readHadoopFile(
-      new CarbonTableInputFormat[Array[Object]],
-      classOf[Void],
-      classOf[Array[Object]],
-      path,
-      new Job(conf)
-    )
-
-    // print result
-    val result = ds.collect()
-    for (i <- 0 until result.size()) {
-      println(result.get(i).f1.mkString(","))
-    }
-
-    // delete carbondata file
-    ExampleUtils.cleanSampleCarbonFile(cc, "carbon1")
+//    val cc = ExampleUtils.createCarbonSession("FlinkExample")
+//    val path = ExampleUtils.writeSampleCarbonFile(cc, "carbon1")
+//
+//    // read two columns by flink
+//    val projection = new CarbonProjection
+//    projection.addColumn("c1")  // column c1
+//    projection.addColumn("c3")  // column c3
+//    val conf = new Configuration()
+//    CarbonTableInputFormat.setColumnProjection(conf, projection)
+//
+//    val env = ExecutionEnvironment.getExecutionEnvironment
+//    val ds = env.readHadoopFile(
+//      new CarbonTableInputFormat[Array[Object]],
+//      classOf[Void],
+//      classOf[Array[Object]],
+//      path,
+//      new Job(conf)
+//    )
+//
+//    // print result
+//    val result = ds.collect()
+//    for (i <- 0 until result.size()) {
+//      println(result.get(i).f1.mkString(","))
+//    }
+//
+//    // delete carbondata file
+//    ExampleUtils.cleanSampleCarbonFile(cc, "carbon1")
   }
 }
 // scalastyle:on println

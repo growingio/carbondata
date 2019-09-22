@@ -20,7 +20,7 @@ package org.apache.carbondata.mv.datamap
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-import org.apache.spark.sql.{CarbonDatasourceHadoopRelation, SparkSession}
+import org.apache.spark.sql.{CarbonDatasourceHadoopRelation, CarbonToSparkAdapter, SparkSession}
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.expressions.aggregate.{AggregateExpression, Count}
 import org.apache.spark.sql.catalyst.plans.logical._
@@ -91,7 +91,7 @@ class MVUtil {
           fieldToDataMapFieldMap +=
           getFieldToDataMapFields(attr.name,
             attr.dataType,
-            attr.qualifier,
+            CarbonToSparkAdapter.wrapQualifier(attr.qualifier, "_"),
             "",
             arrayBuffer,
             carbonTable.getTableName)
@@ -187,7 +187,7 @@ class MVUtil {
               fieldToDataMapFieldMap +=
               getFieldToDataMapFields(agg.name,
                 agg.dataType,
-                attr.qualifier,
+                CarbonToSparkAdapter.wrapQualifier(attr.qualifier, "_"),
                 aggregateType,
                 arrayBuffer,
                 tableName)
@@ -198,7 +198,7 @@ class MVUtil {
         fieldToDataMapFieldMap +=
         getFieldToDataMapFields(agg.name,
           agg.dataType,
-          agg.qualifier,
+          CarbonToSparkAdapter.wrapQualifier(agg.qualifier, "_"),
           aggregateType,
           arrayBuffer,
           "")
@@ -219,7 +219,7 @@ class MVUtil {
             fieldToDataMapFieldMap +=
             getFieldToDataMapFields(attr.name,
               attr.dataType,
-              attr.qualifier,
+              CarbonToSparkAdapter.wrapQualifier(attr.qualifier, "_"),
               "",
               arrayBuffer,
               carbonTable.getTableName)
@@ -338,7 +338,8 @@ class MVUtil {
     val updatedOutList = outputList.map { col =>
       val duplicateColumn = duplicateNameCols
         .find(a => a.semanticEquals(col))
-      val qualifiedName = col.qualifier.getOrElse(s"${ col.exprId.id }") + "_" + col.name
+      val qualifiedName = CarbonToSparkAdapter.wrapQualifier(col.qualifier, "_")
+        .getOrElse(s"${ col.exprId.id }") + "_" + col.name
       if (duplicateColumn.isDefined) {
         val attributesOfDuplicateCol = duplicateColumn.get.collect {
           case a: AttributeReference => a
@@ -354,7 +355,7 @@ class MVUtil {
           attributeOfCol.exists(a => a.semanticEquals(expr)))
         if (!isStrictDuplicate) {
           Alias(col, qualifiedName)(exprId = col.exprId)
-        } else if (col.qualifier.isDefined) {
+        } else if (CarbonToSparkAdapter.wrapQualifier(col.qualifier, "_").isDefined) {
           Alias(col, qualifiedName)(exprId = col.exprId)
           // this check is added in scenario where the column is direct Attribute reference and
           // since duplicate columns select is allowed, we should just put alias for those columns

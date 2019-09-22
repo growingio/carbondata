@@ -17,6 +17,7 @@
 
 package org.apache.carbondata.mv.plans.util
 
+import org.apache.spark.sql.CarbonToSparkAdapter
 import org.apache.spark.sql.catalyst.catalog.{CatalogTable, HiveTableRelation}
 import org.apache.spark.sql.catalyst.expressions.{Alias, Attribute, AttributeReference, AttributeSet, Expression, NamedExpression, PredicateHelper}
 import org.apache.spark.sql.catalyst.plans._
@@ -167,7 +168,8 @@ object ExtractSelectModule extends PredicateHelper {
     val aq = attributeSet.filter(_.qualifier.nonEmpty)
     children.zipWithIndex.flatMap {
       case (child, i) =>
-        aq.find(child.outputSet.contains(_)).map(_.qualifier).flatten.map((i, _))
+        aq.find(child.outputSet.contains(_))
+          .map(a => CarbonToSparkAdapter.wrapQualifier(a.qualifier, ".")).flatten.map((i, _))
     }.toMap
   }
 
