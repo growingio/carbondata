@@ -152,6 +152,13 @@
     </repository>
   </repositories>
 
+  <distributionManagement>
+    <repository>
+      <id>gio</id>
+      <url>http://10.0.1.190:8081/nexus/content/repositories/releases</url>
+    </repository>
+  </distributionManagement>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
