@@ -148,7 +148,7 @@ object CarbonReflectionUtils {
         relation,
         expectedOutputAttributes,
         catalogTable)._1.asInstanceOf[LogicalRelation]
-    } else if (SparkUtil.isSparkVersionEqualTo("2.3")) {
+    } else if (SparkUtil.isSparkVersionEqualTo("2.3") || SparkUtil.isSparkVersionEqualTo("2.4")) {
       createObject(
         className,
         relation,
@@ -292,7 +292,7 @@ object CarbonReflectionUtils {
         .getMethod("writeAndRead", classOf[SaveMode], classOf[DataFrame])
       method.invoke(dataSourceObj, mode, dataFrame)
         .asInstanceOf[BaseRelation]
-    } else if (SparkUtil.isSparkVersionEqualTo("2.3")) {
+    } else if (SparkUtil.isSparkVersionEqualTo("2.3") || SparkUtil.isSparkVersionEqualTo("2.4")) {
       val method: Method = dataSourceObj.getClass
         .getMethod("writeAndRead",
           classOf[SaveMode],
@@ -389,7 +389,7 @@ object CarbonReflectionUtils {
       val method: Method = analyzer.getClass
         .getMethod("execute", classOf[LogicalPlan])
       method.invoke(analyzer, plan).asInstanceOf[LogicalPlan]
-    } else if (SparkUtil.isSparkVersionEqualTo("2.3")) {
+    } else if (SparkUtil.isSparkVersionEqualTo("2.3") || SparkUtil.isSparkVersionEqualTo("2.4")) {
       val method: Method = analyzer.getClass
         .getMethod("executeAndCheck", classOf[LogicalPlan])
       method.invoke(analyzer, plan).asInstanceOf[LogicalPlan]
