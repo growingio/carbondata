@@ -31,6 +31,7 @@
 Build with different supported versions of Spark, by default using Spark 2.4.5
 ```
 mvn -DskipTests -Pspark-2.4 clean package
+mvn -T 8 -DskipTests -Pspark-2.4 -Dspark.version=2.4.3-GIO1.0.2 -Dhadoop.version=2.7.7 clean install -Dfindbugs.skip -Pbuild-with-format
 ```
 
 Note:

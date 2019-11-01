@@ -24,6 +24,8 @@ import org.apache.spark.Partition
 import org.apache.spark.scheduler.TaskLocation
 
 import org.apache.carbondata.common.logging.LogServiceFactory
+import org.apache.carbondata.core.constants.CarbonCommonConstants
+import org.apache.carbondata.core.util.CarbonProperties
 
 /**
  * DataLoadPartitionCoalescer
@@ -324,18 +326,29 @@ class DataLoadPartitionCoalescer(prev: RDD[_], nodeList: Array[String]) {
   }
 
   def run(): Array[Partition] = {
+    val coalesce =
+      CarbonProperties.getInstance.getProperty(
+        CarbonCommonConstants.CARBON_LOAD_DATA_COALESCE, "true")
+
     // 1. group partitions by node
-    groupByNode()
-    LOGGER.info(s"partition: ${prevPartitions.length}, no locality: ${noLocalityPartitions.length}")
-    val partitions = if (noLocality) {
-      // 2.A no locality partition
-      repartitionNoLocality()
+    if (coalesce.toBoolean) {
+      groupByNode()
+      LOGGER.info(s"partition: ${prevPartitions.length}, " +
+        s"no locality: ${noLocalityPartitions.length}")
+      val partitions = if (noLocality) {
+        // 2.A no locality partition
+        repartitionNoLocality()
+      } else {
+        // 2.B locality partition
+        repartitionLocality()
+      }
+      DataLoadPartitionCoalescer.checkPartition(prevPartitions, partitions)
+      partitions
     } else {
-      // 2.B locality partition
-      repartitionLocality()
+      prevPartitions.map { p =>
+        CoalescedRDDPartition(p.index, prev, Array(p.index), None)
+      }
     }
-    DataLoadPartitionCoalescer.checkPartition(prevPartitions, partitions)
-    partitions
   }
 }
 
