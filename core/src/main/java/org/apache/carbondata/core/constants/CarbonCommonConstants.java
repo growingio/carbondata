@@ -89,6 +89,9 @@ public final class CarbonCommonConstants {
   @CarbonProperty
   public static final String CARBON_DDL_BASE_HDFS_URL = "carbon.ddl.base.hdfs.url";
 
+  @CarbonProperty
+  public static final String CARBON_LOAD_DATA_COALESCE = "carbon.data.load.coalesce";
+
   /**
    * CARBON_BADRECORDS_LOCATION
    */
