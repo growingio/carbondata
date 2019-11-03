@@ -16,14 +16,13 @@
  */
 package org.apache.carbondata.integration.spark.testsuite.binary
 
+import java.io.{ByteArrayOutputStream, DataOutputStream}
 import java.util.Arrays
 import org.apache.carbondata.common.exceptions.sql.MalformedCarbonCommandException
 import org.apache.carbondata.core.constants.CarbonCommonConstants
 import org.apache.carbondata.core.metadata.CarbonMetadata
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 import org.apache.carbondata.core.util.CarbonProperties
-import org.apache.commons.codec.binary.Hex
-import org.apache.spark.sql.{AnalysisException, Row}
 import org.apache.commons.codec.binary.{Base64, Hex}
 import org.apache.spark.SparkException
 import org.apache.spark.sql.{AnalysisException, Row}
@@ -1731,6 +1730,34 @@ class TestBinaryDataType extends QueryTest with BeforeAndAfterAll {
           .contains(
               "cannot resolve 'CAST(`1` AS BINARY)' due to data type mismatch: "))
         sql("DROP TABLE binaryTable")
+    }
+
+    test("test complex binary insert into table") {
+        import sqlContext.implicits._
+        sql("DROP TABLE IF EXISTS binaryTable")
+        sql("DROP TABLE IF EXISTS binaryTable_carbondata")
+        sql("DROP TABLE IF EXISTS binaryTable_carbon")
+        sql(s"""CREATE TABLE IF NOT EXISTS binaryTable( binaryField binary ) STORED BY 'carbondata'""")
+        sql(s"""CREATE TABLE IF NOT EXISTS binaryTable_carbondata( binaryField binary ) USING CARBONDATA""")
+        sql(s"""CREATE TABLE IF NOT EXISTS binaryTable_carbon( binaryField binary ) USING CARBON""")
+        // create binary data
+        val baos = new ByteArrayOutputStream()
+        val dos = new DataOutputStream(baos)
+        dos.writeInt(123)
+        dos.writeChars("abc")
+        dos.writeDouble(0.998123D)
+        dos.writeChars("def")
+        val bytes = baos.toByteArray
+
+        Seq(bytes).toDF("binaryField").write.insertInto("binaryTable")
+        Seq(bytes).toDF("binaryField").write.insertInto("binaryTable_carbondata")
+        Seq(bytes).toDF("binaryField").write.insertInto("binaryTable_carbon")
+        checkAnswer(sql("SELECT * FROM binaryTable"), Seq(Row(bytes)))
+        checkAnswer(sql("SELECT * FROM binaryTable_carbondata"), Seq(Row(bytes)))
+        checkAnswer(sql("SELECT * FROM binaryTable_carbon"), Seq(Row(bytes)))
+        sql("DROP TABLE binaryTable")
+        sql("DROP TABLE binaryTable_carbondata")
+        sql("DROP TABLE binaryTable_carbon")
     }
 
     override def afterAll: Unit = {
