@@ -17,9 +17,6 @@
 
 package org.apache.spark.rdd
 
-import org.apache.carbondata.core.constants.CarbonCommonConstants
-import org.apache.carbondata.core.util.CarbonProperties
-
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, HashMap, HashSet, LinkedHashSet}
 
@@ -27,6 +24,8 @@ import org.apache.spark.Partition
 import org.apache.spark.scheduler.TaskLocation
 
 import org.apache.carbondata.common.logging.LogServiceFactory
+import org.apache.carbondata.core.constants.CarbonCommonConstants
+import org.apache.carbondata.core.util.CarbonProperties
 
 /**
  * DataLoadPartitionCoalescer
@@ -324,11 +323,13 @@ class DataLoadPartitionCoalescer(prev: RDD[_], nodeList: Array[String]) {
 
   def run(): Array[Partition] = {
     val coalesce =
-      CarbonProperties.getInstance.getProperty(CarbonCommonConstants.CARBON_LOAD_DATA_COALESCE, "true")
+      CarbonProperties.getInstance.getProperty(
+        CarbonCommonConstants.CARBON_LOAD_DATA_COALESCE, "true")
 
     if (coalesce.toBoolean) {
       groupByNode()
-      LOGGER.info(s"partition: ${prevPartitions.length}, no locality: ${noLocalityPartitions.length}")
+      LOGGER.info(s"partition: ${prevPartitions.length}, " +
+        s"no locality: ${noLocalityPartitions.length}")
       val partitions = if (noLocality) {
         // 2.A no locality partition
         repartitionNoLocality()

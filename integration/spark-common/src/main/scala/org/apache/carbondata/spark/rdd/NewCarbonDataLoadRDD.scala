@@ -352,7 +352,8 @@ class NewRddIterator(rddIter: Iterator[Row],
     carbonLoadModel.getCarbonDataLoadSchema.getCarbonTable.getCreateOrderColumn(
       carbonLoadModel.getTableName).asScala.map(_.isComplex())
   private val isDefaultBinaryDecoder = carbonLoadModel.getBinaryDecoder == null ||
-    CarbonLoadOptionConstants.CARBON_OPTIONS_BINARY_DECODER_DEFAULT.equals(carbonLoadModel.getBinaryDecoder)
+    CarbonLoadOptionConstants.CARBON_OPTIONS_BINARY_DECODER_DEFAULT.equals(
+      carbonLoadModel.getBinaryDecoder)
 
   def hasNext: Boolean = rddIter.hasNext
 
@@ -417,7 +418,8 @@ class LazyRddIterator(serializer: SerializerInstance,
     })
   }
   private val isDefaultBinaryDecoder = carbonLoadModel.getBinaryDecoder == null ||
-    CarbonLoadOptionConstants.CARBON_OPTIONS_BINARY_DECODER_DEFAULT.equals(carbonLoadModel.getBinaryDecoder)
+    CarbonLoadOptionConstants.CARBON_OPTIONS_BINARY_DECODER_DEFAULT.equals(
+      carbonLoadModel.getBinaryDecoder)
 
   private var rddIter: Iterator[Row] = null
   private var uninitialized = true
