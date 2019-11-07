@@ -951,6 +951,14 @@ case class CarbonLoadDataCommand(
           exprId = attr.exprId,
           qualifier = attr.qualifier,
           attrRef = attr)
+      } else if (column.getDataType.isComplexType) {
+        CarbonToSparkAdapter.createAttributeReference(attr.name,
+          BinaryType,
+          attr.nullable,
+          metadata = attr.metadata,
+          exprId = attr.exprId,
+          qualifier = attr.qualifier,
+          attrRef = attr)
       } else {
         attr
       }
@@ -1099,6 +1107,8 @@ case class CarbonLoadDataCommand(
         f.copy(dataType = IntegerType)
       } else if (f.dataType == TimestampType || f.dataType == DateType) {
         f.copy(dataType = LongType)
+      } else if (column.getDataType.isComplexType) {
+        f.copy(dataType = BinaryType)
       } else {
         f
       }

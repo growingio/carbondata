@@ -65,7 +65,9 @@ object FieldConverter {
         case f: java.lang.Float => f.toString
         case bs: Array[Byte] => new String(bs,
           Charset.forName(CarbonCommonConstants.DEFAULT_CHARSET))
-        case s: scala.collection.Seq[Any] =>
+        case s: scala.collection.Seq[Any] => if (s.isEmpty) {
+          ""
+        } else {
           val delimiter = complexDelimiters.get(level)
           val builder = new StringBuilder()
           s.foreach { x =>
@@ -75,9 +77,12 @@ object FieldConverter {
               .append(delimiter)
           }
           builder.substring(0, builder.length - delimiter.length())
+        }
         // First convert the 'key' of Map and then append the keyValueDelimiter and then convert
         // the 'value of the map and append delimiter
-        case m: scala.collection.Map[_, _] =>
+        case m: scala.collection.Map[_, _] => if (m.isEmpty) {
+          ""
+        } else {
           val nextLevel = level + 2
           val delimiter = complexDelimiters.get(level)
           val keyValueDelimiter = complexDelimiters.get(level + 1)
@@ -91,6 +96,7 @@ object FieldConverter {
               .append(delimiter)
           }
           builder.substring(0, builder.length - delimiter.length())
+        }
         case r: org.apache.spark.sql.Row =>
           val delimiter = complexDelimiters.get(level)
           val builder = new StringBuilder()

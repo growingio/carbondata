@@ -54,6 +54,8 @@ public class MapParserImpl extends ArrayParserImpl {
           }
           return new ArrayObject(array.toArray());
         }
+      } else if (value.isEmpty()) {
+        return new ArrayObject(new Object[]{});
       }
     }
     return null;

@@ -1737,7 +1737,7 @@ class TestBinaryDataType extends QueryTest with BeforeAndAfterAll {
         sql("DROP TABLE IF EXISTS binaryTable")
         sql("DROP TABLE IF EXISTS binaryTable_carbondata")
         sql("DROP TABLE IF EXISTS binaryTable_carbon")
-        sql(s"""CREATE TABLE IF NOT EXISTS binaryTable( binaryField binary ) STORED BY 'carbondata'""")
+        sql(s"""CREATE TABLE IF NOT EXISTS binaryTable( binaryField binary, m MAP<STRING, STRING> ) STORED BY 'carbondata'""")
         sql(s"""CREATE TABLE IF NOT EXISTS binaryTable_carbondata( binaryField binary ) USING CARBONDATA""")
         sql(s"""CREATE TABLE IF NOT EXISTS binaryTable_carbon( binaryField binary ) USING CARBON""")
         // create binary data
@@ -1749,10 +1749,10 @@ class TestBinaryDataType extends QueryTest with BeforeAndAfterAll {
         dos.writeChars("def")
         val bytes = baos.toByteArray
 
-        Seq(bytes).toDF("binaryField").write.insertInto("binaryTable")
+        Seq((bytes, Map())).toDF("binaryField", "m").write.insertInto("binaryTable")
         Seq(bytes).toDF("binaryField").write.insertInto("binaryTable_carbondata")
         Seq(bytes).toDF("binaryField").write.insertInto("binaryTable_carbon")
-        checkAnswer(sql("SELECT * FROM binaryTable"), Seq(Row(bytes)))
+        checkAnswer(sql("SELECT * FROM binaryTable"), Seq(Row(bytes, Map())))
         checkAnswer(sql("SELECT * FROM binaryTable_carbondata"), Seq(Row(bytes)))
         checkAnswer(sql("SELECT * FROM binaryTable_carbon"), Seq(Row(bytes)))
         sql("DROP TABLE binaryTable")

@@ -276,18 +276,22 @@ public class InputProcessorStepWithNoConverterImpl extends AbstractDataLoadProce
         } else {
           // if this is a complex column then recursively comver the data into Byte Array.
           if (dataTypes[i].isComplexType()) {
-            ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-            DataOutputStream dataOutputStream = new DataOutputStream(byteArray);
-            try {
-              GenericDataType complextType =
-                  dataFieldsWithComplexDataType.get(dataFields[i].getColumn().getOrdinal());
-              complextType.writeByteArray(data[orderOfData[i]], dataOutputStream, logHolder);
-              dataOutputStream.close();
-              newData[i] = byteArray.toByteArray();
-            } catch (BadRecordFoundException e) {
-              throw new CarbonDataLoadingException("Loading Exception: " + e.getMessage(), e);
-            } catch (Exception e) {
-              throw new CarbonDataLoadingException("Loading Exception", e);
+            if (data[orderOfData[i]] instanceof byte[]) {
+              newData[i] = data[orderOfData[i]];
+            } else {
+              ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+              DataOutputStream dataOutputStream = new DataOutputStream(byteArray);
+              try {
+                GenericDataType complextType =
+                    dataFieldsWithComplexDataType.get(dataFields[i].getColumn().getOrdinal());
+                complextType.writeByteArray(data[orderOfData[i]], dataOutputStream, logHolder);
+                dataOutputStream.close();
+                newData[i] = byteArray.toByteArray();
+              } catch (BadRecordFoundException e) {
+                throw new CarbonDataLoadingException("Loading Exception: " + e.getMessage(), e);
+              } catch (Exception e) {
+                throw new CarbonDataLoadingException("Loading Exception", e);
+              }
             }
           } else {
             DataType dataType = dataFields[i].getColumn().getDataType();

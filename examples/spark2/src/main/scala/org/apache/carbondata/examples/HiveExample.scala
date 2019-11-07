@@ -103,6 +103,15 @@ object HiveExample {
         "insert into complexMap values(map('Manish','Nalla','Shardul','Singh','Vishal','Kumar'," +
         "'EmptyVal','','NullVal', 'null'))")
 
+    carbonSession.sql("""DROP TABLE IF EXISTS complexMapPartition""".stripMargin)
+    carbonSession.sql("create table complexMapPartition(name map<string,string>) " +
+      "partitioned by (time string) stored by 'carbondata'")
+    carbonSession
+      .sql(
+        "insert into complexMapPartition partition(time='2019-11-11') " +
+          "values(map('Manish','Nalla','Shardul','Singh','Vishal','Kumar'," +
+          "'EmptyVal','','NullVal', 'null'))")
+
     carbonSession.close()
 
     // delete the already existing lock on metastore so that new derby instance
