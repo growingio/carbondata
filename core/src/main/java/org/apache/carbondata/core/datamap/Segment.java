@@ -58,7 +58,7 @@ public class Segment implements Serializable, Writable {
    * transactional isolation level which only allows snapshot read of the
    * data and make non committed data invisible to the reader.
    */
-  private transient ReadCommittedScope readCommittedScope;
+  private ReadCommittedScope readCommittedScope;
 
   /**
    * keeps all the details about segments

@@ -155,13 +155,16 @@ public class DataMapUtil {
   public static void pruneSegments(List<Segment> segments, List<ExtendedBlocklet> prunedBlocklets) {
     Set<Segment> validSegments = new HashSet<>();
     for (ExtendedBlocklet blocklet : prunedBlocklets) {
-      // Clear the old pruned index files if any present
-      blocklet.getSegment().getFilteredIndexShardNames().clear();
+      Segment segment = blocklet.getSegment();
+      if (!validSegments.contains(segment)) {
+        // Clear the old pruned index files if any present
+        segment.getFilteredIndexShardNames().clear();
+      }
       // Set the pruned index file to the segment
       // for further pruning.
       String shardName = CarbonTablePath.getShardName(blocklet.getFilePath());
-      blocklet.getSegment().setFilteredIndexShardName(shardName);
-      validSegments.add(blocklet.getSegment());
+      segment.setFilteredIndexShardName(shardName);
+      validSegments.add(segment);
     }
     segments.clear();
     segments.addAll(validSegments);
