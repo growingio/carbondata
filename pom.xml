@@ -35,7 +35,7 @@
   <inceptionYear>2016</inceptionYear>
   <packaging>pom</packaging>
 
-  <version>1.6.0-GIO</version>
+  <version>1.6.0-GIO-1.0.1</version>
 
   <licenses>
     <license>
@@ -482,6 +482,23 @@
                 </rule>
               </rules>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.0.1</version>
+        <configuration>
+          <attach>true</attach>
+        </configuration>
+        <executions>
+          <execution>
+            <id>create-source-jar</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+              <goal>test-jar-no-fork</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
