@@ -38,7 +38,7 @@ mvn -DskipTests -Pspark-2.3 -Dspark.version=2.3.2 clean package
 使用 hadoop 2.7.7
 
 ```
-mvn -T 8 -DskipTests -Pspark-2.4 -Dspark.version=2.4.3-GIO1.0.0 -Dhadoop.version=2.7.7 clean install -Dfindbugs.skip -Pbuild-with-format
+mvn -T 8 -DskipTests -Pspark-2.4 -Dspark.version=2.4.3-GIO1.0.2 -Dhadoop.version=2.7.7 clean install -Dfindbugs.skip -Pbuild-with-format
 ```
 
 Note:

@@ -35,7 +35,7 @@
   <inceptionYear>2016</inceptionYear>
   <packaging>pom</packaging>
 
-  <version>1.6.0-GIO-1.0.1</version>
+  <version>1.6.0-GIO-1.0.2</version>
 
   <licenses>
     <license>
@@ -155,7 +155,7 @@
   <distributionManagement>
     <repository>
       <id>gio</id>
-      <url>http://10.0.1.190:8081/nexus/content/repositories/releases</url>
+      <url>https://nexus.growingio.com/repository/maven-releases/</url>
     </repository>
   </distributionManagement>
 
@@ -674,7 +674,7 @@
       <properties>
         <scala.version>2.11.12</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
-        <spark.version>2.4.3-GIO1.0.0</spark.version>
+        <spark.version>2.4.3-GIO1.0.2</spark.version>
       </properties>
       <build>
         <plugins>
