@@ -862,13 +862,12 @@ class CarbonLateDecodeRule extends Rule[LogicalPlan] with PredicateHelper {
     }
 
     val updateDtrFn = finalPlan transform {
-      case p@Project(projectList: Seq[NamedExpression], cd) =>
+      /* case p@Project(projectList: Seq[NamedExpression], cd) =>
         if (cd.isInstanceOf[Filter] || cd.isInstanceOf[LogicalRelation]) {
           p.transformAllExpressions {
             case a@Alias(exp, _)
               if !exp.deterministic && !exp.isInstanceOf[CustomDeterministicExpression] =>
-              // CarbonToSparkAdapter.createAliasRef(CustomDeterministicExpression(exp),
-              CarbonToSparkAdapter.createAliasRef(exp,
+              CarbonToSparkAdapter.createAliasRef(CustomDeterministicExpression(exp),
                 a.name,
                 exprId = a.exprId,
                 qualifier = a.qualifier,
@@ -898,7 +897,8 @@ class CarbonLateDecodeRule extends Rule[LogicalPlan] with PredicateHelper {
           }
         } else {
           f
-        }
+        } */
+      case t => t
     }
 
     updateDtrFn
