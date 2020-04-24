@@ -820,6 +820,18 @@ class CarbonLateDecodeRule extends Rule[LogicalPlan] with PredicateHelper {
     }
   }
 
+  /**
+   * get deterministic expression for NamedExpression
+   */
+  private def makeDeterministicExp(exp: NamedExpression): Expression = {
+    exp match {
+      case alias: Alias if alias.child.isInstanceOf[CustomDeterministicExpression] =>
+        alias
+      case _ =>
+        CustomDeterministicExpression(exp)
+    }
+  }
+
   private def updateProjection(plan: LogicalPlan): LogicalPlan = {
     val transFormedPlan = plan transform {
       case p@Project(projectList: Seq[NamedExpression], cd: CarbonDictionaryCatalystDecoder) =>
@@ -855,7 +867,8 @@ class CarbonLateDecodeRule extends Rule[LogicalPlan] with PredicateHelper {
           p.transformAllExpressions {
             case a@Alias(exp, _)
               if !exp.deterministic && !exp.isInstanceOf[CustomDeterministicExpression] =>
-              CarbonToSparkAdapter.createAliasRef(CustomDeterministicExpression(exp),
+              // CarbonToSparkAdapter.createAliasRef(CustomDeterministicExpression(exp),
+              CarbonToSparkAdapter.createAliasRef(exp,
                 a.name,
                 exprId = a.exprId,
                 qualifier = a.qualifier,
@@ -863,7 +876,7 @@ class CarbonLateDecodeRule extends Rule[LogicalPlan] with PredicateHelper {
                 namedExpr = Some(a))
             case exp: NamedExpression
               if !exp.deterministic && !exp.isInstanceOf[CustomDeterministicExpression] =>
-              CustomDeterministicExpression(exp)
+              makeDeterministicExp(exp)
           }
         } else {
           p
@@ -881,7 +894,7 @@ class CarbonLateDecodeRule extends Rule[LogicalPlan] with PredicateHelper {
                 namedExpr = Some(a))
             case exp: NamedExpression
               if !exp.deterministic && !exp.isInstanceOf[CustomDeterministicExpression] =>
-              CustomDeterministicExpression(exp)
+              makeDeterministicExp(exp)
           }
         } else {
           f
