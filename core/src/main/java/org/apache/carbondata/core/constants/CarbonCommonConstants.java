@@ -92,6 +92,14 @@ public final class CarbonCommonConstants {
   @CarbonProperty
   public static final String CARBON_LOAD_DATA_COALESCE = "carbon.data.load.coalesce";
 
+  @CarbonProperty
+  public static final String CARBON_SQL_PARSER_FIRST = "carbon.sql.parser.first";
+
+  @CarbonProperty
+  public static final String CARBON_FILE_CACHE_ENABLE = "carbon.file.cache.enable";
+  @CarbonProperty
+  public static final String CARBON_FILE_CACHE_INTERVAL = "carbon.file.cache.interval";
+
   /**
    * CARBON_BADRECORDS_LOCATION
    */

@@ -17,16 +17,16 @@
 
 package org.apache.carbondata.core.datastore.impl;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.carbondata.common.Maps;
 import org.apache.carbondata.common.logging.LogServiceFactory;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
-import org.apache.carbondata.core.datastore.filesystem.AlluxioCarbonFile;
-import org.apache.carbondata.core.datastore.filesystem.CarbonFile;
-import org.apache.carbondata.core.datastore.filesystem.HDFSCarbonFile;
-import org.apache.carbondata.core.datastore.filesystem.LocalCarbonFile;
-import org.apache.carbondata.core.datastore.filesystem.S3CarbonFile;
-import org.apache.carbondata.core.datastore.filesystem.ViewFSCarbonFile;
+import org.apache.carbondata.core.datastore.filesystem.*;
 import org.apache.carbondata.core.util.CarbonProperties;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 
@@ -46,6 +46,11 @@ public class DefaultFileTypeProvider implements FileTypeInterface {
   protected Boolean customFileTypeProviderInitialized = false;
 
   private final Object lock = new Object();
+
+  protected Map<String, Pair<CarbonFile, Long>> carbonFileCache = new ConcurrentHashMap<>();
+
+  private boolean carbonFileCacheEnable;
+  private long carbonFileCacheInterval;
 
   public DefaultFileTypeProvider() {
   }
@@ -71,6 +76,10 @@ public class DefaultFileTypeProvider implements FileTypeInterface {
             customFileTypeProviderInitialized = true;
           }
         }
+        this.carbonFileCacheEnable = Boolean.valueOf(CarbonProperties.getInstance().getProperty(
+            CarbonCommonConstants.CARBON_FILE_CACHE_ENABLE, "false"));
+        this.carbonFileCacheInterval = Long.valueOf(CarbonProperties.getInstance().getProperty(
+            CarbonCommonConstants.CARBON_FILE_CACHE_INTERVAL, "120000"));
       }
     }
   }
@@ -91,26 +100,51 @@ public class DefaultFileTypeProvider implements FileTypeInterface {
     return false;
   }
 
+  @Override
   public CarbonFile getCarbonFile(String path, Configuration conf) {
     // Handle the custom file type first
     if (isPathSupported(path)) {
       return customFileTypeProvider.getCarbonFile(path, conf);
     }
 
+    long currentTime = System.currentTimeMillis();
+    if (this.carbonFileCacheEnable) {
+      Pair<CarbonFile, Long> pair = Maps.getOrDefault(
+          this.carbonFileCache, path, Pair.<CarbonFile, Long>of(null, -1L));
+      CarbonFile lastFile = pair.getLeft();
+      long lastTime = pair.getRight();
+      if (lastFile != null && lastTime != -1
+            && currentTime - this.carbonFileCacheInterval < lastTime) {
+        return lastFile;
+      }
+    }
+    LOGGER.debug("get carbon file path: " + path);
+
     FileFactory.FileType fileType = FileFactory.getFileType(path);
+    CarbonFile carbonFile;
     switch (fileType) {
       case LOCAL:
-        return new LocalCarbonFile(FileFactory.getUpdatedFilePath(path, fileType));
+        carbonFile = new LocalCarbonFile(FileFactory.getUpdatedFilePath(path, fileType));
+        break;
       case HDFS:
-        return new HDFSCarbonFile(path, conf);
+        carbonFile = new HDFSCarbonFile(path, conf);
+        break;
       case S3:
-        return new S3CarbonFile(path, conf);
+        carbonFile = new S3CarbonFile(path, conf);
+        break;
       case ALLUXIO:
-        return new AlluxioCarbonFile(path);
+        carbonFile = new AlluxioCarbonFile(path);
+        break;
       case VIEWFS:
-        return new ViewFSCarbonFile(path);
+        carbonFile = new ViewFSCarbonFile(path);
+        break;
       default:
-        return new LocalCarbonFile(FileFactory.getUpdatedFilePath(path, fileType));
+        carbonFile = new LocalCarbonFile(FileFactory.getUpdatedFilePath(path, fileType));
+        break;
     }
+    if (this.carbonFileCacheEnable) {
+      this.carbonFileCache.put(path, Pair.of(carbonFile, currentTime));
+    }
+    return carbonFile;
   }
 }

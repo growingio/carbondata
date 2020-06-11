@@ -24,6 +24,7 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 
 import org.apache.commons.lang.StringUtils
+import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.catalyst.analysis.NoSuchTableException
 import org.apache.spark.sql.catalyst.catalog.CatalogTable
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
@@ -140,8 +141,8 @@ class CarbonSource extends CreatableRelationProvider with RelationProvider
       CarbonException.analysisException(
         "Table creation failed. Table name cannot contain blank space")
     }
-    val (path, updatedParams) = if (sqlContext.sparkSession.sessionState.catalog.listTables(dbName)
-      .exists(_.table.equalsIgnoreCase(tableName))) {
+    val (path, updatedParams) = if (sqlContext.sparkSession.sessionState.catalog
+      .tableExists(new TableIdentifier(tableName, Some(dbName)))) {
         getPathForTable(sqlContext.sparkSession, dbName, tableName, newParameters)
     } else {
       createTableIfNotExists(sqlContext.sparkSession, dbName, tableName, newParameters, dataSchema)

@@ -30,6 +30,8 @@ import org.apache.spark.sql.util.CarbonException
 import org.apache.spark.util.CarbonReflectionUtils
 
 import org.apache.carbondata.common.exceptions.sql.MalformedCarbonCommandException
+import org.apache.carbondata.core.constants.CarbonCommonConstants
+import org.apache.carbondata.core.util.CarbonProperties
 import org.apache.carbondata.spark.util.CarbonScalaUtil
 
 /**
@@ -43,10 +45,13 @@ class CarbonSparkSqlParser(conf: SQLConf, sparkSession: SparkSession) extends Ab
 
   private val substitutor = new VariableSubstitution(conf)
 
+  private val carbonFirst = CarbonProperties.getInstance().getProperty(
+    CarbonCommonConstants.CARBON_SQL_PARSER_FIRST, "false").toBoolean
+
   override def parsePlan(sqlText: String): LogicalPlan = {
     CarbonSession.updateSessionInfoToCurrentThread(sparkSession)
     try {
-      val parsedPlan = super.parsePlan(sqlText)
+      val parsedPlan = if (carbonFirst) parser.parse(sqlText) else super.parsePlan(sqlText)
       CarbonScalaUtil.cleanParserThreadLocals
       parsedPlan
     } catch {
@@ -55,13 +60,15 @@ class CarbonSparkSqlParser(conf: SQLConf, sparkSession: SparkSession) extends Ab
         throw ce
       case ex: Throwable =>
         try {
-          parser.parse(sqlText)
+          if (!carbonFirst) parser.parse(sqlText) else super.parsePlan(sqlText)
         } catch {
           case mce: MalformedCarbonCommandException =>
             throw mce
           case e: Throwable =>
             CarbonException.analysisException(
-              s"""== Parse1 ==
+              s"""
+                 |CARBON_SQL_PARSER_FIRST: $carbonFirst
+                 |== Parse1 ==
                  |${ex.getMessage}
                  |== Parse2 ==
                  |${e.getMessage}
