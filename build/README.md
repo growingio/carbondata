@@ -25,6 +25,9 @@
 * [Apache Thrift 0.9.3](http://archive.apache.org/dist/thrift/0.9.3/)
 
 ## Build command
+
+修改thrift命令路径: 修改`format`模块pom.xml中的thrift命令, 由于我使用的是Mac系统, 命令指向了 `/usr/local/Cellar/thrift/0.9.3/bin/thrift` (必须是0.9.3版本)
+
 Build with different supported versions of Spark, by default using Spark 2.4.5
 ```
 mvn -DskipTests -Pspark-2.4 clean package

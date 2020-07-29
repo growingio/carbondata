@@ -72,12 +72,12 @@ class CarbonSession(@transient val sc: SparkContext,
       case Some(_) =>
         val ss = existingSharedState.get
         if (ss == null) {
-          new SharedState(sparkContext)
+          new SharedState(sparkContext, initialSessionOptions)
         } else {
           ss
         }
       case None =>
-        new SharedState(sparkContext)
+        new SharedState(sparkContext, initialSessionOptions)
     }
   }
 
