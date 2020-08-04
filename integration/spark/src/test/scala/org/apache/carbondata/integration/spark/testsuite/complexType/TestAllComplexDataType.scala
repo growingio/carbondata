@@ -331,6 +331,23 @@ class TestAllComplexDataType extends QueryTest with BeforeAndAfterAll {
     checkResults()
   }
 
+  test("test map of all primitive types with key as string into partitioned table") {
+    dropTables()
+    val schema = "(smallintColumn map<string,short>, intColumn map<string,int>, bigintColumn map<string,bigint>, " +
+      "doubleColumn map<string,double>, decimalColumn map<string,decimal(10,3)>, floatColumn map<string,float>,timestampColumn map<string,timestamp>, " +
+      "dateColumn map<string,date>, stringColumn map<string,string>, booleanColumn map<string,boolean>) partitioned by (dt string)"
+    sql("create table complextable" + schema + " STORED AS carbondata")
+    sql("create table hivetable" + schema + " row format delimited fields terminated by ','")
+    def insertData(tableName: String) = {
+      sql(s"insert into $tableName partition(dt='2020-01-01') values(map('abcd',1),map('2017-04-01',5), map('abcd',789), map('abcd',2.3), map('abcd',23)," +
+        "map('abcd',56), map('abcd','2017-04-01 12:00:00.0'), map('abcd','2017-09-08'), map('abcd','abc'), map('abcd',true))")
+    }
+    insertData("complextable")
+    insertData("hivetable")
+    checkAnswer(sql("select * from complextable"), sql("select * from hivetable"))
+    dropTables()
+  }
+
   test("test map of all primitive types with key as boolean") {
     val schema = "(smallintColumn map<boolean,short>, intColumn map<boolean,int>, bigintColumn map<boolean,bigint>, " +
     "doubleColumn map<boolean,double>, decimalColumn map<boolean,decimal(10,3)>, floatColumn map<boolean,float>,timestampColumn map<boolean,timestamp>, " +

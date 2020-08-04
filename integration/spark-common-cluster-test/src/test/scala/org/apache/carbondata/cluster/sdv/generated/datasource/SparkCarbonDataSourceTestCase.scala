@@ -33,9 +33,9 @@ import org.scalatest.{BeforeAndAfterAll,FunSuite}
 import org.apache.carbondata.core.datastore.impl.FileFactory
 import org.apache.carbondata.core.index.IndexStoreManager
 import org.apache.carbondata.core.metadata.AbsoluteTableIdentifier
-import org.apache.carbondata.core.metadata.datatype.{DataTypes, StructField}
+import org.apache.carbondata.core.metadata.datatype.{DataTypes, Field, StructField}
 import org.apache.carbondata.hadoop.testutil.StoreCreator
-import org.apache.carbondata.sdk.file.{CarbonWriter, Field, Schema}
+import org.apache.carbondata.sdk.file.{CarbonWriter, Schema}
 
 class SparkCarbonDataSourceTestCase extends FunSuite with BeforeAndAfterAll {
   import spark._

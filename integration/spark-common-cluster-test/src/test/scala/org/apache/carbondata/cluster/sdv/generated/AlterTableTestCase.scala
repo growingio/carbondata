@@ -1020,7 +1020,7 @@ class AlterTableTestCase extends QueryTest with BeforeAndAfterAll {
         sql("alter table alter_hive add columns(add string)")
       }
       assert(exception.getMessage.contains("Unsupported alter operation on hive table"))
-    } else if (SparkUtil.isSparkVersionXandAbove("2.2")) {
+    } else if (SparkUtil.isSparkVersionXAndAbove("2.2")) {
       sql("alter table alter_hive add columns(add string)")
       sql("alter table alter_hive add columns (var map<string, string>)")
       sql("insert into alter_hive select 'abc','banglore',map('age','10','birth','2020')")
@@ -1034,7 +1034,7 @@ class AlterTableTestCase extends QueryTest with BeforeAndAfterAll {
   test("Alter table add column for hive partitioned table for spark version above 2.1") {
     sql("drop table if exists alter_hive")
     sql("create table alter_hive(name string) stored as rcfile partitioned by (dt string)")
-    if (SparkUtil.isSparkVersionXandAbove("2.2")) {
+    if (SparkUtil.isSparkVersionXAndAbove("2.2")) {
       sql("alter table alter_hive add columns(add string)")
       sql("alter table alter_hive add columns (var map<string, string>)")
       sql("alter table alter_hive add columns (loves array<string>)")
@@ -1054,7 +1054,7 @@ class AlterTableTestCase extends QueryTest with BeforeAndAfterAll {
   test("Alter table add complex column for hive table for spark version above 2.1") {
     sql("drop table if exists alter_hive")
     sql("create table alter_hive(name string) stored as rcfile")
-    if (SparkUtil.isSparkVersionXandAbove("2.2")) {
+    if (SparkUtil.isSparkVersionXAndAbove("2.2")) {
       sql("alter table alter_hive add columns (add1 string comment 'comment1')")
       sql("alter table alter_hive add columns (add2 decimal)")
       sql("alter table alter_hive add columns (add3 decimal(20,2))")

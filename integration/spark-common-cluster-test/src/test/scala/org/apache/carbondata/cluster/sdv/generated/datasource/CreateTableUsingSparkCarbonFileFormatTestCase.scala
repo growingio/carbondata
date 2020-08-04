@@ -29,9 +29,9 @@ import org.apache.spark.util.SparkUtil
 
 import org.apache.carbondata.core.datastore.filesystem.CarbonFile
 import org.apache.carbondata.core.datastore.impl.FileFactory
-import org.apache.carbondata.core.metadata.datatype.DataTypes
+import org.apache.carbondata.core.metadata.datatype.{DataTypes, Field}
 import org.apache.carbondata.core.util.CarbonUtil
-import org.apache.carbondata.sdk.file.{CarbonWriter, Field, Schema}
+import org.apache.carbondata.sdk.file.{CarbonWriter, Schema}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.common.util.QueryTest
 import org.apache.spark.sql.test.TestQueryExecutor
@@ -110,7 +110,7 @@ class CreateTableUsingSparkCarbonFileFormatTestCase extends FunSuite with Before
     if (SparkUtil.isSparkVersionEqualTo("2.1")) {
       //data source file format
       sql(s"""CREATE TABLE sdkOutputTable USING carbon OPTIONS (PATH '$writerPath') """)
-    } else if (SparkUtil.isSparkVersionXandAbove("2.2")) {
+    } else if (SparkUtil.isSparkVersionXAndAbove("2.2")) {
       //data source file format
       sql(
         s"""CREATE TABLE sdkOutputTable USING carbon LOCATION
@@ -138,7 +138,7 @@ class CreateTableUsingSparkCarbonFileFormatTestCase extends FunSuite with Before
       if (SparkUtil.isSparkVersionEqualTo("2.1")) {
         //data source file format
         sql(s"""CREATE TABLE sdkOutputTable USING carbon OPTIONS (PATH '$writerPath') """)
-      } else if (SparkUtil.isSparkVersionXandAbove("2.2")) {
+      } else if (SparkUtil.isSparkVersionXAndAbove("2.2")) {
         //data source file format
         sql(
           s"""CREATE TABLE sdkOutputTable USING carbon LOCATION
@@ -162,7 +162,7 @@ class CreateTableUsingSparkCarbonFileFormatTestCase extends FunSuite with Before
     if (SparkUtil.isSparkVersionEqualTo("2.1")) {
       //data source file format
       sql(s"""CREATE TABLE sdkOutputTable USING carbon OPTIONS (PATH '$writerPath') """)
-    } else if (SparkUtil.isSparkVersionXandAbove("2.2")) {
+    } else if (SparkUtil.isSparkVersionXAndAbove("2.2")) {
       //data source file format
       sql(
         s"""CREATE TABLE sdkOutputTable USING carbon LOCATION
