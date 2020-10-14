@@ -113,9 +113,9 @@ public abstract class MVManager {
    */
   public List<MVSchema> getSchemas() throws IOException {
     List<MVSchema> schemas = new ArrayList<>();
-    for (String database : this.getDatabases()) {
-      schemas.addAll(this.getSchemas(database));
-    }
+    // for (String database : this.getDatabases()) {
+    //  schemas.addAll(this.getSchemas(database));
+    // }
     return schemas;
   }
 
