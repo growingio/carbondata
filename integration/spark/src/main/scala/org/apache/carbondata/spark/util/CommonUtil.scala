@@ -27,7 +27,6 @@ import java.util.regex.{Matcher, Pattern}
 import scala.collection.JavaConverters._
 import scala.collection.mutable.Map
 import scala.math.BigDecimal.RoundingMode
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.spark.{SparkContext, SparkEnv}
@@ -36,7 +35,6 @@ import org.apache.spark.sql.catalyst.expressions.{UnsafeArrayData, UnsafeMapData
 import org.apache.spark.sql.execution.command.{ColumnProperty, Field, PartitionerField}
 import org.apache.spark.sql.types.{ArrayType, DataType, DateType, DecimalType, MapType, StringType, StructField, StructType, TimestampType}
 import org.apache.spark.util.FileUtils
-
 import org.apache.carbondata.common.exceptions.sql.MalformedCarbonCommandException
 import org.apache.carbondata.common.logging.LogServiceFactory
 import org.apache.carbondata.core.constants.CarbonCommonConstants
@@ -58,6 +56,7 @@ import org.apache.carbondata.processing.loading.converter.impl.FieldEncoderFacto
 import org.apache.carbondata.processing.loading.csvinput.CSVInputFormat
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel
 import org.apache.carbondata.processing.util.CarbonDataProcessorUtil
+import org.apache.spark.unsafe.types.UTF8String
 
 object CommonUtil {
   private val LOGGER = LogServiceFactory.getLogService(this.getClass.getCanonicalName)
@@ -1046,6 +1045,12 @@ object CommonUtil {
           null
         } else {
           (data.asInstanceOf[Long] / 1000).asInstanceOf[AnyRef]
+        }
+      case _: StringType =>
+        if (data == null) {
+          null
+        } else {
+          UTF8String.fromBytes(data.asInstanceOf[UTF8String].getBytes)
         }
       case _ => data
     }
