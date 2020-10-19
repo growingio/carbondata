@@ -26,14 +26,19 @@ import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.util.CarbonReflectionUtils
 
 class CarbonAnalyzer(catalog: SessionCatalog,
-    conf: SQLConf,
-    sparkSession: SparkSession,
-    analyzer: Analyzer) extends Analyzer(catalog, conf) {
+                     conf: SQLConf,
+                     sparkSession: SparkSession,
+                     analyzer: Analyzer)
+    extends Analyzer(catalog, conf) {
 
   val mvPlan = try {
-    CarbonReflectionUtils.createObject(
-      "org.apache.spark.sql.optimizer.MVRewriteRule",
-      sparkSession)._1.asInstanceOf[Rule[LogicalPlan]]
+    CarbonReflectionUtils
+      .createObject(
+        "org.apache.spark.sql.optimizer.MVRewriteRule",
+        sparkSession
+      )
+      ._1
+      .asInstanceOf[Rule[LogicalPlan]]
   } catch {
     case e: Exception =>
       null
@@ -41,10 +46,11 @@ class CarbonAnalyzer(catalog: SessionCatalog,
 
   override def execute(plan: LogicalPlan): LogicalPlan = {
     val logicalPlan = analyzer.execute(plan)
-    if (mvPlan != null) {
-      mvPlan.apply(logicalPlan)
-    } else {
-      logicalPlan
-    }
+    //这个解析和metabase的交互太多。特别耗时，暂时去掉。
+//    if (mvPlan != null) {
+//      mvPlan.apply(logicalPlan)
+//    } else {
+    logicalPlan
+//    }
   }
 }
