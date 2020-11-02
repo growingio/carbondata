@@ -52,17 +52,19 @@ class StandardPartitionComplexDataTypeTestCase extends QueryTest with BeforeAndA
          | col6 map<string, struct<ratio: float>>,
          | col7 date
          | ) """.stripMargin)
-    sql(s"""
-           | insert into table $tableName1
-           | select
-           |   1,
-           |   'a',
-           |   1.1,
-           |   struct('b', 1.2, struct('bc', 1.21)),
-           |   array(struct(1.3), struct(1.4)),
-           |   map('l1', struct(1.5), 'l2', struct(1.6)),
-           |   to_date('2019-01-01')
-           | """.stripMargin)
+    sql(
+      s"""
+         | insert into table $tableName1
+
+         |   struct('b', 1.2, struct('
+
+         |   array(struct(1.3), s
+
+         |   map('l1', struct(1.5), 'l2', s
+
+         |   to_date('
+
+         | """.stripMargin)
 
     val tableName2 = "tbl_complex_p_carbondata"
     sql(s"drop table if exists $tableName2")
@@ -100,4 +102,29 @@ class StandardPartitionComplexDataTypeTestCase extends QueryTest with BeforeAndA
            |""".stripMargin)
     )
   }
+
+  test("string writer") {
+    val tableName1 = "string_tbl"
+    sql(s"drop table if exists $tableName1")
+    sql(s"""
+           | create table $tableName1
+ (
+           | attributes string
+           | ) stored as carbondata """.stripMargin)
+
+
+    val sparkContext = sqlContext.sparkSession
+    sparkContext.read.csv("/Users/qi/Growing/sources/carbondata-gio/x2").repartition(20).createOrReplaceTempView("x2")
+
+    sql(s"insert into $tableName1 select _c12 as attributes from x2 ")
+    //    sql(s"select attributes from $tableName1").show()
+
+    sql(s"select count(1) from $tableName1").show()
+    sql(s"select count(1) from $tableName1 where attributes not like '{%'").show()
+    sql(s"select attributes from $tableName1 where attributes like '@NU#LL%'").show(10)
+    sql(s"select attributes from $tableName1 where attributes not like '{%'").show(10)
+
+
+  }
 }
+
