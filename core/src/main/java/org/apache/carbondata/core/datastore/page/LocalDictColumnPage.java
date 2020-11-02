@@ -137,22 +137,7 @@ public class LocalDictColumnPage extends ColumnPage {
     if (null != pageLevelDictionary) {
       try {
         actualDataColumnPage.putBytes(rowId, bytes);
-        byte[] input;
-        DataType dataType = actualDataColumnPage.columnPageEncoderMeta.getStoreDataType();
-        if (dataType == DataTypes.STRING) {
-          ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length + 2);
-          byteBuffer.putShort((short) bytes.length);
-          byteBuffer.put(bytes);
-          input = byteBuffer.array();
-        } else if (dataType == DataTypes.VARCHAR || dataType == DataTypes.BINARY) {
-          ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length + 4);
-          byteBuffer.putInt(bytes.length);
-          byteBuffer.put(bytes);
-          input = byteBuffer.array();
-        } else {
-          input = bytes;
-        }
-        dummyKey[0] = pageLevelDictionary.getDictionaryValue(input);
+        dummyKey[0] = pageLevelDictionary.getDictionaryValue(bytes);
         encodedDataColumnPage.putBytes(rowId, keyGenerator.generateKey(dummyKey));
       } catch (DictionaryThresholdReachedException e) {
         LOGGER.warn("Local Dictionary threshold reached for the column: " + actualDataColumnPage
