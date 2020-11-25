@@ -28,6 +28,8 @@ import org.apache.carbondata.core.datastore.page.encoding.EncodedColumnPage;
 import org.apache.carbondata.core.keygenerator.KeyGenerator;
 import org.apache.carbondata.core.keygenerator.factory.KeyGeneratorFactory;
 import org.apache.carbondata.core.localdictionary.generator.LocalDictionaryGenerator;
+import org.apache.carbondata.core.metadata.datatype.DataType;
+import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.util.CarbonUtil;
 import org.apache.carbondata.format.Encoding;
 
@@ -110,12 +112,28 @@ public class DecoderBasedFallbackEncoder implements Callable<FallbackEncodedColu
     actualDataColumnPage.setStatsCollector(encodedColumnPage.getActualPage().statsCollector);
 
     // get the actual data for each dictionary data and put the actual data in new page
+    // skip length bytes (see {@link LocalDictColumnPage#putBytes(int, byte[])})
+
+    int skipLength = 0;
+    DataType dataType = actualDataColumnPage.columnPageEncoderMeta.getStoreDataType();
+    if (dataType == DataTypes.STRING) {
+      skipLength = 2;
+    } else if (dataType == DataTypes.VARCHAR || dataType == DataTypes.BINARY) {
+      skipLength = 4;
+    }
+
     int rowId = 0;
     for (int i = 0; i < pageSize; i++) {
       int index = reverseInvertedIndex[i] * 3;
       int keyArray = (int) keyGenerator.getKeyArray(bytes, index)[0];
-      actualDataColumnPage
-          .putBytes(rowId++, localDictionaryGenerator.getDictionaryKeyBasedOnValue(keyArray));
+      byte[] value = localDictionaryGenerator.getDictionaryKeyBasedOnValue(keyArray);
+      if (skipLength > 0) {
+        byte[] skippedValue = new byte[value.length - skipLength];
+        System.arraycopy(value, skipLength, skippedValue, 0, skippedValue.length);
+        actualDataColumnPage.putBytes(rowId++, skippedValue);
+      } else {
+        actualDataColumnPage.putBytes(rowId++, value);
+      }
     }
 
     // get column spec for existing column page

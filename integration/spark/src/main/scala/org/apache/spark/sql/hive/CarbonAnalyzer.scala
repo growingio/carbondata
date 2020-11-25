@@ -46,11 +46,11 @@ class CarbonAnalyzer(catalog: SessionCatalog,
 
   override def execute(plan: LogicalPlan): LogicalPlan = {
     val logicalPlan = analyzer.execute(plan)
-    //这个解析和metabase的交互太多。特别耗时，暂时去掉。
-//    if (mvPlan != null) {
-//      mvPlan.apply(logicalPlan)
-//    } else {
+
+    //    if (mvPlan != null) {
+    //      mvPlan.apply(logicalPlan)
+    //    } else {
     logicalPlan
-//    }
+    //    }
   }
 }
