@@ -201,11 +201,19 @@ public class CarbonFactDataHandlerModel {
       }
     }
     List<DataType> noDictDataTypesList = new ArrayList<>();
+    List<DataType> noDictComplexDataTypesList = new ArrayList<>();
     for (DataField dataField : configuration.getDataFields()) {
       if (!dataField.isDateDataType() && dataField.getColumn().isDimension()) {
-        noDictDataTypesList.add(dataField.getColumn().getDataType());
+        DataType dateType = dataField.getColumn().getDataType();
+        if (dateType.isComplexType()) {
+          noDictComplexDataTypesList.add(dateType);
+        } else {
+          noDictDataTypesList.add(dateType);
+        }
       }
     }
+    noDictDataTypesList.addAll(noDictComplexDataTypesList);
+
     CarbonDataFileAttributes carbonDataFileAttributes =
         new CarbonDataFileAttributes(configuration.getTaskNo(),
             (Long) configuration.getDataLoadProperty(DataLoadProcessorConstants.FACT_TIME_STAMP));
