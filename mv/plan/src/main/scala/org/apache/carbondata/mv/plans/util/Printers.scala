@@ -186,7 +186,10 @@ trait Printers {
 
     trait ExprSeq extends Seq[SortOrder]
 
-    def printExprModifiers(modifiers: (FlagSet, Seq[Seq[Any]]), pos: Position): Unit = {
+    def printExprModifiers(
+        modifiers: (FlagSet, Seq[Seq[Any]]),
+        pos: Position,
+        select: Seq[NamedExpression] = Seq()): Unit = {
       val flagsNeedExprs = for {flag <- pickledListOrder
                                 if (modifiers._1.hasFlag(flag))} yield {
         (flag)
@@ -206,11 +209,13 @@ trait Printers {
                            case a: Alias =>
                              val qualifierPrefix = a.qualifier
                                .map(_ + ".").lastOption.getOrElse("")
-                             s"$qualifierPrefix${
-                               quoteIdentifier(a
-                                 .name)
-                             }"
-
+                             if (select.map(_.name).contains(a.name)) {
+                               s"$qualifierPrefix${
+                                 quoteIdentifier(a.name)
+                               }"
+                             } else {
+                               a.child.sql
+                             }
                            case other => other.sql
                          }
                        } + " " + s.direction.sql + " " + s.nullOrdering.sql
@@ -273,7 +278,7 @@ trait Printers {
           }
           printHaving(having)
           if (modifiers._1.hasFlag(SORT)) {
-            printExprModifiers(modifiers, Sort)
+            printExprModifiers(modifiers, Sort, select)
           }
           if (modifiers._1.hasFlag(LIMIT)) {
             printExprModifiers(modifiers, Limit)
@@ -373,6 +378,13 @@ trait Printers {
 
   def formatExpressionsInUDF(exp: Seq[Expression]): String = {
     val result = exp.map {
+      case sUdf: ScalaUDF =>
+        val udf = sUdf.udfName
+        if (udf.isDefined) {
+          udf.get + "(" + (formatExpressionsInUDF(sUdf.children)) + " )"
+        } else {
+          sUdf.sql
+        }
       case cast: Cast =>
         // for rolledUp queries of timeseries column with Date type, make
         // Cast sql with attribute name
