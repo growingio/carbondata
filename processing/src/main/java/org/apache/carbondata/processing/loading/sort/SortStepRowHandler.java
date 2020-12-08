@@ -792,7 +792,7 @@ public class SortStepRowHandler implements Serializable {
             reUsableByteArrayDataOutputStream);
       } else {
         byte[] bytes = (byte[]) row[this.noDictNoSortDimIdx[idx]];
-        reUsableByteArrayDataOutputStream.writeShort((short) bytes.length);
+        reUsableByteArrayDataOutputStream.writeInt(bytes.length);
         reUsableByteArrayDataOutputStream.write(bytes);
       }
     }
