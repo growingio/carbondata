@@ -331,7 +331,7 @@ public class SortStepRowHandler implements Serializable {
       if (this.noDictNoSortColMapping[i]) {
         noDictDims[noDictIndex++] = getDataFromRowBuffer(noDictNoSortDataTypes[i], rowBuffer);
       } else {
-        short len = rowBuffer.getShort();
+        int len = rowBuffer.getInt();
         byte[] bytes = new byte[len];
         rowBuffer.get(bytes);
         noDictDims[noDictIndex++] = bytes;
