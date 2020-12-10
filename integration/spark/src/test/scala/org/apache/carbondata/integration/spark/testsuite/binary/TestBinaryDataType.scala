@@ -126,7 +126,7 @@ class TestBinaryDataType extends QueryTest with BeforeAndAfterAll {
                |    binaryField binary,
                |    autoLabel boolean)
                | STORED AS CARBONDATA
-               | TBLPROPERTIES('SORT_COLUMNS'='id')
+               | TBLPROPERTIES('SORT_COLUMNS'='id','SORT_SCOPE' = 'global_sort')
              """.stripMargin)
         sql(
             s"""
@@ -134,7 +134,6 @@ class TestBinaryDataType extends QueryTest with BeforeAndAfterAll {
                | INTO TABLE binaryTable
                | OPTIONS('header'='false')
              """.stripMargin)
-        sql("SELECT * FROM binaryTable").show
 
         checkAnswer(sql("SELECT COUNT(*) FROM binaryTable"), Seq(Row(3)))
         try {
