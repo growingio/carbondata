@@ -140,6 +140,14 @@ public class DecoderBasedFallbackEncoder implements Callable<FallbackEncodedColu
     TableSpec.ColumnSpec columnSpec = encodedColumnPage.getActualPage().getColumnSpec();
     FallbackEncodedColumnPage fallBackEncodedColumnPage =
         CarbonUtil.getFallBackEncodedColumnPage(actualDataColumnPage, pageIndex, columnSpec);
+
+    // add int_length_complex encoder (see {@link ColumnPageEncoder#encodeComplexColumn(ComplexColumnPage)})
+    boolean originHasIntLengthEncoder = CarbonUtil.hasEncoding(encodedColumnPage.getPageMetadata().encoders, Encoding.INT_LENGTH_COMPLEX_CHILD_BYTE_ARRAY);
+    boolean fallBackHasIntLengthEncoder = CarbonUtil.hasEncoding(fallBackEncodedColumnPage.getEncodedColumnPage().getPageMetadata().encoders, Encoding.INT_LENGTH_COMPLEX_CHILD_BYTE_ARRAY);
+    if (originHasIntLengthEncoder && !fallBackHasIntLengthEncoder) {
+      fallBackEncodedColumnPage.getEncodedColumnPage().getPageMetadata().getEncoders().add(Encoding.INT_LENGTH_COMPLEX_CHILD_BYTE_ARRAY);
+    }
+
     // here freeing the memory of new column page created as fallback is done and
     // fallBackEncodedColumnPage is created using new page of actual data
     // This is required to free the memory once it is of no use
