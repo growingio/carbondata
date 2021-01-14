@@ -18,6 +18,7 @@
 package org.apache.carbondata.core.datastore.page;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
@@ -141,11 +142,18 @@ public class DecoderBasedFallbackEncoder implements Callable<FallbackEncodedColu
     FallbackEncodedColumnPage fallBackEncodedColumnPage =
         CarbonUtil.getFallBackEncodedColumnPage(actualDataColumnPage, pageIndex, columnSpec);
 
-    // add int_length_complex encoder (see {@link ColumnPageEncoder#encodeComplexColumn(ComplexColumnPage)})
-    boolean originHasIntLengthEncoder = CarbonUtil.hasEncoding(encodedColumnPage.getPageMetadata().encoders, Encoding.INT_LENGTH_COMPLEX_CHILD_BYTE_ARRAY);
-    boolean fallBackHasIntLengthEncoder = CarbonUtil.hasEncoding(fallBackEncodedColumnPage.getEncodedColumnPage().getPageMetadata().encoders, Encoding.INT_LENGTH_COMPLEX_CHILD_BYTE_ARRAY);
+    // add int_length_complex encoder
+    // (see {@link ColumnPageEncoder#encodeComplexColumn(ComplexColumnPage)})
+    List<Encoding> fallBackEncoders =
+            fallBackEncodedColumnPage.getEncodedColumnPage().getPageMetadata().encoders;
+    List<Encoding> originEncoders = encodedColumnPage.getPageMetadata().encoders;
+    boolean originHasIntLengthEncoder =
+            CarbonUtil.hasEncoding(originEncoders, Encoding.INT_LENGTH_COMPLEX_CHILD_BYTE_ARRAY);
+    boolean fallBackHasIntLengthEncoder =
+            CarbonUtil.hasEncoding(fallBackEncoders, Encoding.INT_LENGTH_COMPLEX_CHILD_BYTE_ARRAY);
     if (originHasIntLengthEncoder && !fallBackHasIntLengthEncoder) {
-      fallBackEncodedColumnPage.getEncodedColumnPage().getPageMetadata().getEncoders().add(Encoding.INT_LENGTH_COMPLEX_CHILD_BYTE_ARRAY);
+      fallBackEncodedColumnPage.getEncodedColumnPage().getPageMetadata().getEncoders()
+              .add(Encoding.INT_LENGTH_COMPLEX_CHILD_BYTE_ARRAY);
     }
 
     // here freeing the memory of new column page created as fallback is done and
